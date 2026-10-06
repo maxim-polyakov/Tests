@@ -85,7 +85,7 @@ jobs:
              else
                COMPOSE='docker-compose'
              fi
-             \$COMPOSE down --remove-orphans || true
+             \$COMPOSE pull
              kubectl apply -f k8s/namespace.yaml
              kubectl -n wrighttest create secret generic wrighttest-env \
                --from-env-file=.env \
@@ -98,6 +98,10 @@ jobs:
                --dry-run=client -o yaml | kubectl apply -f -
              kubectl -n wrighttest delete job test-importer --ignore-not-found
              kubectl apply -f k8s/resources.yaml
+             sudo -n /usr/local/sbin/compose-k3s-sync \
+               --project-dir '$DEPLOY_PATH' \
+               --skip-build \
+               --timeout 15m
              kubectl -n wrighttest rollout status deployment/redis --timeout=180s
              kubectl -n wrighttest rollout status deployment/novnc --timeout=180s
              kubectl -n wrighttest rollout status deployment/backend --timeout=300s
