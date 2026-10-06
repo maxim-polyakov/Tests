@@ -1,5 +1,3 @@
-name: wrighttest
-
 services:
   redis:
     image: redis:7-alpine
@@ -12,7 +10,6 @@ services:
 
   novnc:
     image: sacha1bu/wrighttest-novnc:${WRIGHTTEST_VERSION:-1.0.0}
-    pull_policy: always
     restart: unless-stopped
     ports:
       - "127.0.0.1:${NOVNC_HOST_PORT:-6080}:6080"
@@ -30,7 +27,6 @@ services:
 
   backend:
     image: sacha1bu/wrighttest-backend:${WRIGHTTEST_VERSION:-1.0.0}
-    pull_policy: always
     restart: unless-stopped
     ports:
       - "127.0.0.1:${BACKEND_HOST_PORT:-3000}:3000"
@@ -72,7 +68,6 @@ services:
 
   frontend:
     image: sacha1bu/wrighttest-frontend:${WRIGHTTEST_VERSION:-1.0.0}
-    pull_policy: always
     restart: unless-stopped
     ports:
       - "127.0.0.1:${FRONTEND_HOST_PORT:-5173}:80"

@@ -79,6 +79,11 @@ jobs:
              tar -xzf '/tmp/wrighttest-deploy-${GITHUB_SHA}.tar.gz' -C '$DEPLOY_PATH'
              rm '/tmp/wrighttest-deploy-${GITHUB_SHA}.tar.gz'
              cd '$DEPLOY_PATH'
-             docker compose pull
-             docker compose up -d --remove-orphans
-             docker compose ps"
+             if docker compose version >/dev/null 2>&1; then
+               COMPOSE='docker compose'
+             else
+               COMPOSE='docker-compose'
+             fi
+             \$COMPOSE pull
+             \$COMPOSE up -d --remove-orphans
+             \$COMPOSE ps"
