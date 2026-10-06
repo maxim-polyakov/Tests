@@ -1,0 +1,107 @@
+name: wrighttest
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  novnc:
+    image: sacha1bu/wrighttest-novnc:${WRIGHTTEST_VERSION:-1.0.0}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${NOVNC_HOST_PORT:-6080}:6080"
+    environment:
+      VNC_PORT: "5900"
+      NOVNC_PORT: "6080"
+    volumes:
+      - x11_socket:/tmp/.X11-unix
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:6080/vnc.html >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: sacha1bu/wrighttest-backend:${WRIGHTTEST_VERSION:-1.0.0}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${BACKEND_HOST_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      BACKEND_PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL in .env}
+      FRONTEND_INTERNAL_URL: http://frontend:80
+      SCREENSHOTS_DIR: /app/backend/screenshots
+      TRACES_DIR: /app/backend/traces
+      AUTH_STATES_DIR: /app/backend/auth-states
+      AUTH_STATE_ENCRYPTION_KEY: ${AUTH_STATE_ENCRYPTION_KEY:-}
+      DISPLAY: ":99"
+      NOVNC_HOST: novnc
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wrighttest.app}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      NODE_ENV: production
+    volumes:
+      - screenshots:/app/backend/screenshots
+      - traces:/app/backend/traces
+      - auth_states:/app/backend/auth-states
+      - x11_socket:/tmp/.X11-unix
+    depends_on:
+      redis:
+        condition: service_healthy
+      novnc:
+        condition: service_healthy
+    shm_size: 1gb
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  frontend:
+    image: sacha1bu/wrighttest-frontend:${WRIGHTTEST_VERSION:-1.0.0}
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_HOST_PORT:-5173}:80"
+    environment:
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL:?Set VITE_BACKEND_URL in .env}
+      VITE_NOVNC_URL: ${VITE_NOVNC_URL:?Set VITE_NOVNC_URL in .env}
+      VITE_ENABLE_NOVNC: "true"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  test-importer:
+    image: node:22-alpine
+    restart: "no"
+    environment:
+      WRIGHTTEST_API_URL: http://backend:3000
+      WRIGHTTEST_PROJECT: ${WRIGHTTEST_PROJECT:-Imported Tests}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wrighttest.app}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+    volumes:
+      - ./tests:/tests:ro
+      - ./scripts/import-tests.mjs:/import-tests.mjs:ro
+    command: ["node", "/import-tests.mjs"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  screenshots:
+  traces:
+  auth_states:
+  x11_socket:

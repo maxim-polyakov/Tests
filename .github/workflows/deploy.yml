@@ -1,0 +1,84 @@
+name: Deploy WrightTest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - compose.yaml
+      - tests/**
+      - scripts/**
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: wrighttest-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/wrighttest' }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Package deployment files
+        env:
+          DEPLOY_ENV: ${{ secrets.DEPLOY_ENV }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
+          printf '%s\n' "$DEPLOY_ENV" > .env
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env tests scripts
+
+      - name: Upload deployment files
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          scp \
+            -i ~/.ssh/deploy_key \
+            -P "$DEPLOY_PORT" \
+            wrighttest-deploy.tar.gz \
+            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/wrighttest-deploy-${GITHUB_SHA}.tar.gz"
+
+      - name: Start WrightTest
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -p "$DEPLOY_PORT" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "set -eu
+             mkdir -p '$DEPLOY_PATH'
+             tar -xzf '/tmp/wrighttest-deploy-${GITHUB_SHA}.tar.gz' -C '$DEPLOY_PATH'
+             rm '/tmp/wrighttest-deploy-${GITHUB_SHA}.tar.gz'
+             cd '$DEPLOY_PATH'
+             docker compose pull
+             docker compose up -d --remove-orphans
+             docker compose ps"
