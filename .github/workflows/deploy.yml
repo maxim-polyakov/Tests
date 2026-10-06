@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - compose.yaml
+      - k8s/**
       - tests/**
       - scripts/**
       - .github/workflows/deploy.yml
@@ -50,7 +51,7 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
           printf '%s\n' "$DEPLOY_ENV" > .env
-          tar -czf wrighttest-deploy.tar.gz compose.yaml .env tests scripts
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env k8s tests scripts
 
       - name: Upload deployment files
         env:
@@ -64,7 +65,7 @@ jobs:
             wrighttest-deploy.tar.gz \
             "$DEPLOY_USER@$DEPLOY_HOST:/tmp/wrighttest-deploy-${GITHUB_SHA}.tar.gz"
 
-      - name: Start WrightTest
+      - name: Deploy WrightTest to Kubernetes
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -84,6 +85,22 @@ jobs:
              else
                COMPOSE='docker-compose'
              fi
-             \$COMPOSE pull
-             \$COMPOSE up -d --remove-orphans
-             \$COMPOSE ps"
+             \$COMPOSE down --remove-orphans || true
+             kubectl apply -f k8s/namespace.yaml
+             kubectl -n wrighttest create secret generic wrighttest-env \
+               --from-env-file=.env \
+               --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest create configmap wrighttest-importer-script \
+               --from-file=import-tests.mjs=scripts/import-tests.mjs \
+               --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest create configmap wrighttest-tests \
+               --from-file=tests \
+               --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest delete job test-importer --ignore-not-found
+             kubectl apply -f k8s/resources.yaml
+             kubectl -n wrighttest rollout status deployment/redis --timeout=180s
+             kubectl -n wrighttest rollout status deployment/novnc --timeout=180s
+             kubectl -n wrighttest rollout status deployment/backend --timeout=300s
+             kubectl -n wrighttest rollout status deployment/frontend --timeout=180s
+             kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s
+             kubectl -n wrighttest get pods -o wide"

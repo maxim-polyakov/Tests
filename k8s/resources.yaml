@@ -1,0 +1,421 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: wrighttest
+  labels:
+    app: redis
+    compose.project: wrighttest
+    compose.service: redis
+    migrate.from: docker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        compose.project: wrighttest
+        compose.service: redis
+        migrate.from: docker
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cp-baxic
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: redis
+              containerPort: 6379
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: wrighttest
+  labels:
+    compose.project: wrighttest
+    compose.service: redis
+    migrate.from: docker
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: novnc
+  namespace: wrighttest
+  labels:
+    app: novnc
+    compose.project: wrighttest
+    compose.service: novnc
+    migrate.from: docker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: novnc
+  template:
+    metadata:
+      labels:
+        app: novnc
+        compose.project: wrighttest
+        compose.service: novnc
+        migrate.from: docker
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cp-baxic
+      containers:
+        - name: novnc
+          image: sacha1bu/wrighttest-novnc:0.2.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: VNC_PORT
+              value: "5900"
+            - name: NOVNC_PORT
+              value: "6080"
+          ports:
+            - name: novnc
+              containerPort: 6080
+              hostPort: 6080
+          readinessProbe:
+            httpGet:
+              path: /vnc.html
+              port: novnc
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: x11
+              mountPath: /tmp/.X11-unix
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: x11
+          hostPath:
+            path: /home/baxic/Documents/GitHub/Writetest/data/x11
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: novnc
+  namespace: wrighttest
+  labels:
+    compose.project: wrighttest
+    compose.service: novnc
+    migrate.from: docker
+spec:
+  selector:
+    app: novnc
+  ports:
+    - name: novnc
+      port: 6080
+      targetPort: novnc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: wrighttest
+  labels:
+    app: backend
+    compose.project: wrighttest
+    compose.service: backend
+    migrate.from: docker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        compose.project: wrighttest
+        compose.service: backend
+        migrate.from: docker
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cp-baxic
+      hostAliases:
+        - ip: 89.124.86.173
+          hostnames:
+            - host.docker.internal
+      containers:
+        - name: backend
+          image: sacha1bu/wrighttest-backend:0.2.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: wrighttest-env
+          env:
+            - name: BACKEND_PORT
+              value: "3000"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: FRONTEND_INTERNAL_URL
+              value: http://frontend
+            - name: SCREENSHOTS_DIR
+              value: /app/backend/screenshots
+            - name: TRACES_DIR
+              value: /app/backend/traces
+            - name: AUTH_STATES_DIR
+              value: /app/backend/auth-states
+            - name: DISPLAY
+              value: ":99"
+            - name: NOVNC_HOST
+              value: novnc
+            - name: NODE_ENV
+              value: production
+          ports:
+            - name: backend
+              containerPort: 3000
+              hostPort: 3000
+          startupProbe:
+            httpGet:
+              path: /health
+              port: backend
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet:
+              path: /health/db
+              port: backend
+            periodSeconds: 10
+          volumeMounts:
+            - name: screenshots
+              mountPath: /app/backend/screenshots
+            - name: traces
+              mountPath: /app/backend/traces
+            - name: auth-states
+              mountPath: /app/backend/auth-states
+            - name: x11
+              mountPath: /tmp/.X11-unix
+            - name: shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+      volumes:
+        - name: screenshots
+          hostPath:
+            path: /home/baxic/Documents/GitHub/Writetest/data/screenshots
+            type: DirectoryOrCreate
+        - name: traces
+          hostPath:
+            path: /home/baxic/Documents/GitHub/Writetest/data/traces
+            type: DirectoryOrCreate
+        - name: auth-states
+          hostPath:
+            path: /home/baxic/Documents/GitHub/Writetest/data/auth-states
+            type: DirectoryOrCreate
+        - name: x11
+          hostPath:
+            path: /home/baxic/Documents/GitHub/Writetest/data/x11
+            type: DirectoryOrCreate
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: wrighttest
+  labels:
+    compose.project: wrighttest
+    compose.service: backend
+    migrate.from: docker
+spec:
+  selector:
+    app: backend
+  ports:
+    - name: backend
+      port: 3000
+      targetPort: backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: wrighttest
+  labels:
+    app: frontend
+    compose.project: wrighttest
+    compose.service: frontend
+    migrate.from: docker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        compose.project: wrighttest
+        compose.service: frontend
+        migrate.from: docker
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cp-baxic
+      containers:
+        - name: frontend
+          image: sacha1bu/wrighttest-frontend:0.2.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: wrighttest-env
+          env:
+            - name: VITE_ENABLE_NOVNC
+              value: "true"
+          ports:
+            - name: frontend
+              containerPort: 80
+              hostPort: 5173
+          readinessProbe:
+            httpGet:
+              path: /
+              port: frontend
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: wrighttest
+  labels:
+    compose.project: wrighttest
+    compose.service: frontend
+    migrate.from: docker
+spec:
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: frontend
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-importer
+  namespace: wrighttest
+  labels:
+    app: test-importer
+    compose.project: wrighttest
+    compose.service: test-importer
+    migrate.from: docker
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: test-importer
+        compose.project: wrighttest
+        compose.service: test-importer
+        migrate.from: docker
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: cp-baxic
+      initContainers:
+        - name: wait-for-backend
+          image: node:22-alpine
+          command:
+            - node
+            - -e
+            - >-
+              const wait = async () => {
+                for (;;) {
+                  try {
+                    const response = await fetch('http://backend:3000/health');
+                    if (response.ok) process.exit(0);
+                  } catch {}
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+                }
+              };
+              wait();
+      containers:
+        - name: test-importer
+          image: node:22-alpine
+          command: ["node", "/import-tests.mjs"]
+          env:
+            - name: WRIGHTTEST_API_URL
+              value: http://backend:3000
+            - name: WRIGHTTEST_PROJECT
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: WRIGHTTEST_PROJECT
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ADMIN_EMAIL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ADMIN_PASSWORD
+          volumeMounts:
+            - name: importer-script
+              mountPath: /import-tests.mjs
+              subPath: import-tests.mjs
+              readOnly: true
+            - name: tests
+              mountPath: /tests
+              readOnly: true
+      volumes:
+        - name: importer-script
+          configMap:
+            name: wrighttest-importer-script
+        - name: tests
+          configMap:
+            name: wrighttest-tests
