@@ -27,8 +27,11 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
   await page.locator('.new-chat-button').click();
   const textarea = page.locator('.message-textarea');
   await expect(textarea).toBeVisible();
+  await expect(textarea).toBeEnabled({ timeout: 30_000 });
   await textarea.fill(prompt);
-  await page.getByTitle('Отправить сообщение').click();
+  const sendButton = page.getByTitle('Отправить сообщение');
+  await expect(sendButton).toBeEnabled({ timeout: 30_000 });
+  await sendButton.click();
 
   await expect(page.locator('.user-message').filter({ hasText: prompt })).toBeVisible({
     timeout: 60_000,
