@@ -67,7 +67,7 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
   await activeChat.locator('.sidebar-chat-menu-btn').click();
   await activeChat.locator('.sidebar-chat-menu-item').nth(2).click();
   await expect(page.locator('.share-bar')).toBeVisible();
-  await page.locator('.share-bar').getByRole('button', { name: 'Выбрать все' }).click();
+  await page.locator('.share-bar').getByRole('button', { name: 'Выбрать всё' }).click();
   await page.locator('.share-bar').getByRole('button', { name: 'Отмена' }).click();
 
   await activeChat.locator('.sidebar-chat-menu-btn').click();
