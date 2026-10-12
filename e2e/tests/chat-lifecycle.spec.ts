@@ -14,7 +14,7 @@ async function login(page: Page) {
 }
 
 test('complete chat lifecycle and message actions', async ({ context, page }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(180_000);
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
     origin: 'https://misa.baxic.ru',
   });
@@ -39,11 +39,12 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
     timeout: 30_000,
   });
   const answer = page.locator('.misa-message').last();
-  await expect(answer).toBeVisible({ timeout: 240_000 });
+  // Ответ Misa обычно быстрый; длинный таймаут маскировал баг затирания чата
+  await expect(answer).toBeVisible({ timeout: 90_000 });
 
   await answer.getByTitle('Копировать').click();
   await answer.getByTitle('Перегенерировать').click();
-  await expect(page.locator('.typing-indicator')).toBeHidden({ timeout: 240_000 });
+  await expect(page.locator('.typing-indicator')).toBeHidden({ timeout: 90_000 });
   await answer.getByTitle('Нравится', { exact: true }).click();
   await answer.getByTitle('Не нравится', { exact: true }).click();
   await expect(page.locator('.feedback-modal')).toBeVisible();
