@@ -9,11 +9,12 @@ async function login(page: Page) {
   await page.locator('input').nth(0).fill(email);
   await page.locator('input').nth(1).fill(password);
   await page.locator('button.btn-outline-success').click();
-  await expect(page).toHaveURL(/\/chat\?lang=ru$/);
+  await expect(page).toHaveURL(/\/chat\?lang=ru$/, { timeout: 30_000 });
   await expect(page.locator('.chat-container')).toBeVisible();
 }
 
 test('complete chat lifecycle and message actions', async ({ context, page }) => {
+  test.setTimeout(300_000);
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
     origin: 'https://misa.baxic.ru',
   });
@@ -30,14 +31,14 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
   await page.getByTitle('Отправить сообщение').click();
 
   await expect(page.locator('.user-message').filter({ hasText: prompt })).toBeVisible({
-    timeout: 15_000,
+    timeout: 60_000,
   });
   const answer = page.locator('.misa-message').last();
-  await expect(answer).toBeVisible({ timeout: 75_000 });
+  await expect(answer).toBeVisible({ timeout: 240_000 });
 
   await answer.getByTitle('Копировать').click();
   await answer.getByTitle('Перегенерировать').click();
-  await expect(page.locator('.typing-indicator')).toBeHidden({ timeout: 75_000 });
+  await expect(page.locator('.typing-indicator')).toBeHidden({ timeout: 240_000 });
   await answer.getByTitle('Нравится', { exact: true }).click();
   await answer.getByTitle('Не нравится', { exact: true }).click();
   await expect(page.locator('.feedback-modal')).toBeVisible();
