@@ -39,6 +39,21 @@ spec:
                   value: https://misa.baxic.ru
                 - name: MISA_API_URL
                   value: https://misaapi.baxic.ru
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: DATABASE_URL
+                - name: WRIGHTTEST_PROJECT
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: WRIGHTTEST_PROJECT
+                - name: TEST_ENVIRONMENT
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: TEST_ENVIRONMENT
                 - name: MISA_TEST_EMAIL
                   valueFrom:
                     secretKeyRef:
