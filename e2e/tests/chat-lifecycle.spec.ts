@@ -24,6 +24,7 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
   const prompt = `E2E smoke check ${marker}: reply with OK`;
   const renamedTitle = `E2E ${marker}`;
 
+  await expect(page.locator('.reconnect-container')).toHaveCount(0, { timeout: 30_000 });
   await page.locator('.new-chat-button').click();
   const textarea = page.locator('.message-textarea');
   await expect(textarea).toBeVisible();
@@ -33,8 +34,9 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
   await expect(sendButton).toBeEnabled({ timeout: 30_000 });
   await sendButton.click();
 
+  // Сообщение должно появиться сразу (оптимистичный UI), даже если API создания чата тормозит
   await expect(page.locator('.user-message').filter({ hasText: prompt })).toBeVisible({
-    timeout: 60_000,
+    timeout: 30_000,
   });
   const answer = page.locator('.misa-message').last();
   await expect(answer).toBeVisible({ timeout: 240_000 });
