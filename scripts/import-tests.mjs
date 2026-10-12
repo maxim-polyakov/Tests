@@ -32,7 +32,8 @@ async function request(urlPath, options = {}) {
 }
 
 async function findSpecs(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
+  const entries = (await readdir(directory, { withFileTypes: true }))
+    .filter((entry) => !entry.name.startsWith('..'));
   const files = await Promise.all(entries.map(async (entry) => {
     const entryPath = path.join(directory, entry.name);
     return entry.isDirectory() ? findSpecs(entryPath) : [entryPath];
@@ -105,6 +106,13 @@ for (const schedule of schedules) {
   if (schedule.name.startsWith('Hourly: ') && !desiredScheduleNames.has(schedule.name)) {
     await request(`/schedules/${schedule.id}`, { method: 'DELETE', headers });
     console.log(`Deleted stale schedule: ${schedule.name}`);
+  }
+}
+
+for (const importedTest of existing) {
+  if (/^\.\.\d/.test(importedTest.name)) {
+    await request(`/tests/${importedTest.id}`, { method: 'DELETE', headers });
+    console.log(`Deleted stale ConfigMap test: ${importedTest.name}`);
   }
 }
 

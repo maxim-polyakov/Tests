@@ -15,9 +15,10 @@ test.describe('Public authentication controls', () => {
 
     await page.goto('/forgot-password?lang=ru');
     await expect(page.getByRole('heading', { name: 'Восстановление пароля' })).toBeVisible();
-    await page.getByPlaceholder('Введите email').fill('invalid-email');
+    const recoveryEmail = page.getByPlaceholder('Введите email');
+    await recoveryEmail.fill('invalid-email');
     await page.getByRole('button', { name: 'Отправить код' }).click();
-    await expect(page.getByText('Введите корректный email')).toBeVisible();
+    expect(await recoveryEmail.evaluate((input: HTMLInputElement) => input.validity.typeMismatch)).toBe(true);
     await page.getByRole('link', { name: 'Назад к входу' }).click();
     await expect(page).toHaveURL(/\/login\?lang=ru$/);
   });

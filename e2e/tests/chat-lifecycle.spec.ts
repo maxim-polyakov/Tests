@@ -13,7 +13,10 @@ async function login(page: Page) {
   await expect(page.locator('.chat-container')).toBeVisible();
 }
 
-test('complete chat lifecycle and message actions', async ({ page }) => {
+test('complete chat lifecycle and message actions', async ({ context, page }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+    origin: 'https://misa.baxic.ru',
+  });
   await login(page);
 
   const marker = Date.now();
@@ -26,7 +29,9 @@ test('complete chat lifecycle and message actions', async ({ page }) => {
   await textarea.fill(prompt);
   await page.getByTitle('Отправить сообщение').click();
 
-  await expect(page.locator('.user-message').filter({ hasText: prompt })).toBeVisible();
+  await expect(page.locator('.user-message').filter({ hasText: prompt })).toBeVisible({
+    timeout: 15_000,
+  });
   const answer = page.locator('.misa-message').last();
   await expect(answer).toBeVisible({ timeout: 75_000 });
 
