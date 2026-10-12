@@ -68,7 +68,7 @@ const environments = await request(`/projects/${project.id}/environments`, { hea
 const environmentVariables = {
   BASE_URL: targetBaseUrl,
   LOGIN_URL: `${targetBaseUrl}/login?lang=ru`,
-  LOGOUT_URL: `${targetBaseUrl}/login`,
+  LOGOUT_URL: `${targetBaseUrl}/login?lang=ru`,
   REGISTRATION_URL: `${targetBaseUrl}/registration?lang=ru`,
   FORGOT_PASSWORD_URL: `${targetBaseUrl}/forgot-password?lang=ru`,
   CHAT_URL: `${targetBaseUrl}/chat?lang=ru`,
