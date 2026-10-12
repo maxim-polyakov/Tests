@@ -59,7 +59,7 @@ test('profile menu and every safe settings control', async ({ page }) => {
   await page.getByRole('button', { name: 'Удалить всё' }).click();
 
   await page.locator('.settings-modal-nav-item').nth(3).click();
-  await expect(page.getByText('Misa AI Чат')).toBeVisible();
+  await expect(page.locator('.settings-placeholder')).toHaveText('Misa AI Чат');
   await page.getByRole('button', { name: 'Закрыть' }).click();
   await expect(page.locator('.settings-modal')).toBeHidden();
 });

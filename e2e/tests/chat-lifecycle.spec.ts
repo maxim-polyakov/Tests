@@ -33,8 +33,8 @@ test('complete chat lifecycle and message actions', async ({ page }) => {
   await answer.getByTitle('Копировать').click();
   await answer.getByTitle('Перегенерировать').click();
   await expect(page.locator('.typing-indicator')).toBeHidden({ timeout: 75_000 });
-  await answer.getByTitle('Нравится').click();
-  await answer.getByTitle('Не нравится').click();
+  await answer.getByTitle('Нравится', { exact: true }).click();
+  await answer.getByTitle('Не нравится', { exact: true }).click();
   await expect(page.locator('.feedback-modal')).toBeVisible();
   await page.getByRole('button', { name: 'Вредно / Небезопасно' }).click();
   await page.locator('.feedback-modal-textarea').fill('Automated E2E feedback');
