@@ -84,7 +84,12 @@ services:
     restart: "no"
     environment:
       WRIGHTTEST_API_URL: http://backend:3000
-      WRIGHTTEST_PROJECT: ${WRIGHTTEST_PROJECT:-Imported Tests}
+      WRIGHTTEST_PROJECT: ${WRIGHTTEST_PROJECT:-Misa}
+      TEST_BASE_URL: ${TEST_BASE_URL:-https://misa.baxic.ru}
+      TEST_SCHEDULE_CRON: "${TEST_SCHEDULE_CRON:-0 * * * *}"
+      TEST_ENVIRONMENT: ${TEST_ENVIRONMENT:-Misa Production}
+      MISA_TEST_EMAIL: ${MISA_TEST_EMAIL:?Set MISA_TEST_EMAIL in .env}
+      MISA_TEST_PASSWORD: ${MISA_TEST_PASSWORD:?Set MISA_TEST_PASSWORD in .env}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wrighttest.app}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
     volumes:

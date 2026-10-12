@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: misa-e2e
+  namespace: wrighttest
+  labels:
+    app: misa-e2e
+    compose.project: wrighttest
+spec:
+  schedule: "30 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        metadata:
+          labels:
+            app: misa-e2e
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            kubernetes.io/hostname: cp-baxic
+          containers:
+            - name: playwright
+              image: mcr.microsoft.com/playwright:v1.61.0-jammy
+              imagePullPolicy: IfNotPresent
+              workingDir: /work
+              command:
+                - /bin/sh
+                - -lc
+                - npm ci --ignore-scripts && npx playwright test
+              env:
+                - name: CI
+                  value: "true"
+                - name: MISA_BASE_URL
+                  value: https://misa.baxic.ru
+                - name: MISA_API_URL
+                  value: https://misaapi.baxic.ru
+                - name: MISA_TEST_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: MISA_TEST_EMAIL
+                - name: MISA_TEST_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: MISA_TEST_PASSWORD
+              volumeMounts:
+                - name: tests
+                  mountPath: /work
+          volumes:
+            - name: tests
+              hostPath:
+                path: /home/baxic/Documents/GitHub/Writetest/e2e
+                type: Directory

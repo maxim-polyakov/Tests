@@ -394,6 +394,34 @@ spec:
                 secretKeyRef:
                   name: wrighttest-env
                   key: WRIGHTTEST_PROJECT
+            - name: TEST_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: TEST_BASE_URL
+                  optional: true
+            - name: TEST_SCHEDULE_CRON
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: TEST_SCHEDULE_CRON
+                  optional: true
+            - name: TEST_ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: TEST_ENVIRONMENT
+                  optional: true
+            - name: MISA_TEST_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: MISA_TEST_EMAIL
+            - name: MISA_TEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: MISA_TEST_PASSWORD
             - name: ADMIN_EMAIL
               valueFrom:
                 secretKeyRef:

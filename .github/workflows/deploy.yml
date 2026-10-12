@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - compose.yaml
+      - e2e/**
       - k8s/**
       - tests/**
       - scripts/**
@@ -51,7 +52,7 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
           printf '%s\n' "$DEPLOY_ENV" > .env
-          tar -czf wrighttest-deploy.tar.gz compose.yaml .env k8s tests scripts
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s tests scripts
 
       - name: Upload deployment files
         env:
@@ -98,9 +99,12 @@ jobs:
                --dry-run=client -o yaml | kubectl apply -f -
              kubectl -n wrighttest delete job test-importer --ignore-not-found
              kubectl apply -f k8s/resources.yaml
+             kubectl apply -f k8s/e2e-cronjob.yaml
              kubectl -n wrighttest rollout status deployment/redis --timeout=180s
              kubectl -n wrighttest rollout status deployment/novnc --timeout=180s
              kubectl -n wrighttest rollout status deployment/backend --timeout=300s
              kubectl -n wrighttest rollout status deployment/frontend --timeout=180s
              kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s
+             kubectl -n wrighttest delete job misa-e2e-deploy --ignore-not-found
+             kubectl -n wrighttest create job --from=cronjob/misa-e2e misa-e2e-deploy
              kubectl -n wrighttest get pods -o wide"
