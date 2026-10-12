@@ -16,7 +16,12 @@ if (!email || !password || !testEmail || !testPassword) {
 }
 
 async function request(urlPath, options = {}) {
-  const response = await fetch(`${apiUrl}${urlPath}`, options);
+  const headers = { ...(options.headers ?? {}) };
+  if (options.body === undefined) {
+    delete headers['content-type'];
+  }
+
+  const response = await fetch(`${apiUrl}${urlPath}`, { ...options, headers });
   const body = response.status === 204 ? null : await response.json();
 
   if (!response.ok) {

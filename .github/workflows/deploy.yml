@@ -110,7 +110,11 @@ jobs:
              kubectl -n wrighttest rollout status deployment/novnc --timeout=180s
              kubectl -n wrighttest rollout status deployment/backend --timeout=300s
              kubectl -n wrighttest rollout status deployment/frontend --timeout=180s
-             kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s
+             if ! kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s; then
+               kubectl -n wrighttest describe job/test-importer || true
+               kubectl -n wrighttest logs job/test-importer --all-containers=true --tail=-1 || true
+               exit 1
+             fi
              kubectl -n wrighttest delete job misa-e2e-deploy --ignore-not-found
              kubectl -n wrighttest create job --from=cronjob/misa-e2e misa-e2e-deploy
              kubectl -n wrighttest get pods -o wide"
