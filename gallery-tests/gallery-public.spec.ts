@@ -11,5 +11,5 @@ test('публичные страницы MisaGallery открываются', a
   await expect(page.locator('form')).toBeVisible();
 
   await page.goto(process.env.GALLERY_URL ?? '');
-  await expect(page).toHaveURL(/\/login(?:\?|$)/);
+  await expect(page).toHaveURL(process.env.LOGIN_PAGE_URL ?? '');
 });

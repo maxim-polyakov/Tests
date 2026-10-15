@@ -70,7 +70,9 @@ const environments = await request(`/projects/${project.id}/environments`, { hea
 const environmentVariables = {
   BASE_URL: targetBaseUrl,
   API_URL: targetApiUrl,
+  API_IMAGES_URL: `${targetApiUrl}/api/images`,
   LOGIN_URL: `${targetBaseUrl}/login?lang=ru`,
+  LOGIN_PAGE_URL: `${targetBaseUrl}/login`,
   LOGOUT_URL: `${targetBaseUrl}/login?lang=ru`,
   REGISTRATION_URL: `${targetBaseUrl}/registration?lang=ru`,
   FORGOT_PASSWORD_URL: `${targetBaseUrl}/forgot-password?lang=ru`,
@@ -124,11 +126,33 @@ for (const importedTest of existing) {
 for (const file of specs) {
   const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
   let importedTest = testsByName.get(name);
+  const code = await readFile(file, 'utf8');
 
   if (importedTest) {
-    console.log(`Skipped existing test: ${name}`);
+    const temporaryName = `__refresh__${Date.now()}-${name}`.slice(0, 100);
+    const refreshed = await request(`/projects/${project.id}/import`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ name: temporaryName, code }),
+    });
+    try {
+      const freshTest = refreshed.test;
+      importedTest = await request(`/tests/${importedTest.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          name,
+          url: freshTest.url,
+          device: freshTest.device,
+          steps: freshTest.steps,
+          testData: freshTest.testData,
+        }),
+      });
+      console.log(`Updated test: ${name}`);
+    } finally {
+      await request(`/tests/${refreshed.test.id}`, { method: 'DELETE', headers });
+    }
   } else {
-    const code = await readFile(file, 'utf8');
     const imported = await request(`/projects/${project.id}/import`, {
       method: 'POST',
       headers,

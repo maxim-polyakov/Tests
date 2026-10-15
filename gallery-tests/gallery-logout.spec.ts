@@ -8,7 +8,7 @@ test('пользователь выходит из MisaGallery', async ({ page }
   await page.locator('button.btn-outline-success').click();
   await expect(page).toHaveURL(process.env.GALLERY_URL ?? '');
 
-  await page.locator('a[href="/login"] button').click();
-  await expect(page).toHaveURL(/\/login(?:\?|$)/);
+  await page.locator('a[href="/login"]').click();
+  await expect(page).toHaveURL(process.env.LOGIN_PAGE_URL ?? '');
   await expect(page.locator('form')).toBeVisible();
 });

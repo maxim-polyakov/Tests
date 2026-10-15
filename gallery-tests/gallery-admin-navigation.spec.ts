@@ -18,5 +18,5 @@ test('панель администратора MisaGallery защищена о�
 
   await expect(page.locator('.alert-danger')).toBeVisible();
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
-  await expect(page.locator('a[href="/gallery"]')).toBeVisible();
+  await expect(page.locator('a[href="/gallery"]').last()).toBeVisible();
 });
