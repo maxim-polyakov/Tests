@@ -9,7 +9,7 @@ const targetBaseUrl = (process.env.TEST_BASE_URL ?? 'https://misa.baxic.ru').rep
 const targetApiUrl = (process.env.TEST_API_URL ?? targetBaseUrl).replace(/\/$/, '');
 const scheduleCron = process.env.TEST_SCHEDULE_CRON ?? '0 * * * *';
 const environmentName = process.env.TEST_ENVIRONMENT ?? 'Misa Production';
-const testsDirectory = process.env.TESTS_DIR ?? '/tests';
+const testsDirectory = process.env.TESTS_DIR ?? '/misa-tests';
 const testEmail = process.env.TEST_EMAIL ?? process.env.MISA_TEST_EMAIL;
 const testPassword = process.env.TEST_PASSWORD ?? process.env.MISA_TEST_PASSWORD;
 

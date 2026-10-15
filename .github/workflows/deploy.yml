@@ -7,7 +7,8 @@ on:
       - compose.yaml
       - e2e/**
       - k8s/**
-      - tests/**
+      - misa-tests/**
+      - gallery-tests/**
       - scripts/**
       - .github/workflows/deploy.yml
   workflow_dispatch:
@@ -52,7 +53,7 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
           printf '%s\n' "$DEPLOY_ENV" > .env
-          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s tests gallery-tests scripts
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s misa-tests gallery-tests scripts
 
       - name: Upload deployment files
         env:
@@ -94,9 +95,10 @@ jobs:
              kubectl -n wrighttest create configmap wrighttest-importer-script \
                --from-file=import-tests.mjs=scripts/import-tests.mjs \
                --dry-run=client -o yaml | kubectl apply -f -
-             kubectl -n wrighttest create configmap wrighttest-tests \
-               --from-file=tests \
+             kubectl -n wrighttest create configmap wrighttest-misa-tests \
+               --from-file=misa-tests \
                --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest delete configmap wrighttest-tests --ignore-not-found
              kubectl -n wrighttest create configmap wrighttest-gallery-tests \
                --from-file=gallery-tests \
                --dry-run=client -o yaml | kubectl apply -f -

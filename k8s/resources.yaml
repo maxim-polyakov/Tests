@@ -437,16 +437,16 @@ spec:
               mountPath: /import-tests.mjs
               subPath: import-tests.mjs
               readOnly: true
-            - name: tests
-              mountPath: /tests
+            - name: misa-tests
+              mountPath: /misa-tests
               readOnly: true
       volumes:
         - name: importer-script
           configMap:
             name: wrighttest-importer-script
-        - name: tests
+        - name: misa-tests
           configMap:
-            name: wrighttest-tests
+            name: wrighttest-misa-tests
 ---
 apiVersion: batch/v1
 kind: Job
@@ -507,6 +507,8 @@ spec:
                   optional: true
             - name: TEST_ENVIRONMENT
               value: MisaGallery Production
+            - name: TESTS_DIR
+              value: /gallery-tests
             - name: TEST_EMAIL
               valueFrom:
                 secretKeyRef:
@@ -532,13 +534,13 @@ spec:
               mountPath: /import-tests.mjs
               subPath: import-tests.mjs
               readOnly: true
-            - name: tests
-              mountPath: /tests
+            - name: gallery-tests
+              mountPath: /gallery-tests
               readOnly: true
       volumes:
         - name: importer-script
           configMap:
             name: wrighttest-importer-script
-        - name: tests
+        - name: gallery-tests
           configMap:
             name: wrighttest-gallery-tests
