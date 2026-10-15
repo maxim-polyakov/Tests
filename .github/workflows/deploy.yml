@@ -104,6 +104,7 @@ jobs:
              kubectl -n wrighttest delete job misagallery-test-importer --ignore-not-found
              kubectl apply -f k8s/resources.yaml
              kubectl apply -f k8s/e2e-cronjob.yaml
+             kubectl apply -f k8s/gallery-e2e-cronjob.yaml
              stdbuf -oL -eL bash '$DEPLOY_PATH/scripts/compose-k3s-sync.sh' \
                --compose-file compose.yaml \
                --project-dir '$DEPLOY_PATH' \
@@ -126,4 +127,11 @@ jobs:
              fi
              kubectl -n wrighttest delete job misa-e2e-deploy --ignore-not-found
              kubectl -n wrighttest create job --from=cronjob/misa-e2e misa-e2e-deploy
+             kubectl -n wrighttest delete job misagallery-e2e-deploy --ignore-not-found
+             kubectl -n wrighttest create job --from=cronjob/misagallery-e2e misagallery-e2e-deploy
+             if ! kubectl -n wrighttest wait --for=condition=complete job/misagallery-e2e-deploy --timeout=660s; then
+               kubectl -n wrighttest describe job/misagallery-e2e-deploy || true
+               kubectl -n wrighttest logs job/misagallery-e2e-deploy --all-containers=true --tail=-1 || true
+               exit 1
+             fi
              kubectl -n wrighttest get pods -o wide"
