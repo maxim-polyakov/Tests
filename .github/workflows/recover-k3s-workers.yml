@@ -1,0 +1,55 @@
+name: Recover K3s Workers
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > ~/.ssh/known_hosts
+
+      - name: Restart K3s agents
+        run: |
+          set -euo pipefail
+          worker_ips="$(ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "kubectl get nodes -l '!node-role.kubernetes.io/control-plane' \
+              -o jsonpath='{range .items[*]}{.status.addresses[?(@.type==\"InternalIP\")].address}{\"\\n\"}{end}'")"
+
+          if [ -z "$worker_ips" ]; then
+            echo "No worker nodes found"
+            exit 1
+          fi
+
+          while IFS= read -r worker_ip; do
+            [ -n "$worker_ip" ] || continue
+            echo "Restarting k3s-agent on $worker_ip"
+            ssh -i ~/.ssh/deploy_key \
+              -o BatchMode=yes \
+              -o ConnectTimeout=15 \
+              -o StrictHostKeyChecking=no \
+              -o ProxyCommand="ssh -i ~/.ssh/deploy_key -p $DEPLOY_PORT -o StrictHostKeyChecking=yes -W %h:%p $DEPLOY_USER@$DEPLOY_HOST" \
+              "$DEPLOY_USER@$worker_ip" \
+              "sudo -n systemctl restart k3s-agent"
+          done <<< "$worker_ips"
+
+          sleep 20
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "kubectl get nodes -o wide"
