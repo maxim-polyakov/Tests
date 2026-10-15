@@ -64,6 +64,13 @@ spec:
                     secretKeyRef:
                       name: wrighttest-env
                       key: MISA_TEST_PASSWORD
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: "1"
+                  memory: 2Gi
               volumeMounts:
                 - name: tests
                   mountPath: /work

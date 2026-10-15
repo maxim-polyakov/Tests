@@ -129,6 +129,11 @@ jobs:
              fi
              kubectl -n wrighttest delete job misa-e2e-deploy --ignore-not-found
              kubectl -n wrighttest create job --from=cronjob/misa-e2e misa-e2e-deploy
+             if ! kubectl -n wrighttest wait --for=condition=complete job/misa-e2e-deploy --timeout=960s; then
+               kubectl -n wrighttest describe job/misa-e2e-deploy || true
+               kubectl -n wrighttest logs job/misa-e2e-deploy --all-containers=true --tail=-1 || true
+               exit 1
+             fi
              kubectl -n wrighttest delete job misagallery-e2e-deploy --ignore-not-found
              kubectl -n wrighttest create job --from=cronjob/misagallery-e2e misagallery-e2e-deploy
              if ! kubectl -n wrighttest wait --for=condition=complete job/misagallery-e2e-deploy --timeout=660s; then
