@@ -52,7 +52,7 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
           printf '%s\n' "$DEPLOY_ENV" > .env
-          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s tests scripts
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s tests gallery-tests scripts
 
       - name: Upload deployment files
         env:
