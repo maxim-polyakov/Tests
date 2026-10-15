@@ -97,7 +97,11 @@ jobs:
              kubectl -n wrighttest create configmap wrighttest-tests \
                --from-file=tests \
                --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest create configmap wrighttest-gallery-tests \
+               --from-file=gallery-tests \
+               --dry-run=client -o yaml | kubectl apply -f -
              kubectl -n wrighttest delete job test-importer --ignore-not-found
+             kubectl -n wrighttest delete job misagallery-test-importer --ignore-not-found
              kubectl apply -f k8s/resources.yaml
              kubectl apply -f k8s/e2e-cronjob.yaml
              stdbuf -oL -eL bash '$DEPLOY_PATH/scripts/compose-k3s-sync.sh' \
@@ -113,6 +117,11 @@ jobs:
              if ! kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s; then
                kubectl -n wrighttest describe job/test-importer || true
                kubectl -n wrighttest logs job/test-importer --all-containers=true --tail=-1 || true
+               exit 1
+             fi
+             if ! kubectl -n wrighttest wait --for=condition=complete job/misagallery-test-importer --timeout=300s; then
+               kubectl -n wrighttest describe job/misagallery-test-importer || true
+               kubectl -n wrighttest logs job/misagallery-test-importer --all-containers=true --tail=-1 || true
                exit 1
              fi
              kubectl -n wrighttest delete job misa-e2e-deploy --ignore-not-found

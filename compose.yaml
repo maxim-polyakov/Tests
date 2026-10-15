@@ -100,6 +100,28 @@ services:
       backend:
         condition: service_healthy
 
+  misagallery-test-importer:
+    image: node:22-alpine
+    restart: "no"
+    environment:
+      WRIGHTTEST_API_URL: http://backend:3000
+      WRIGHTTEST_PROJECT: MisaGallery
+      TEST_BASE_URL: https://misagallery.baxic.ru
+      TEST_API_URL: https://gallery.baxic.ru
+      TEST_SCHEDULE_CRON: "${TEST_SCHEDULE_CRON:-0 * * * *}"
+      TEST_ENVIRONMENT: MisaGallery Production
+      TEST_EMAIL: ${MISA_TEST_EMAIL:?Set MISA_TEST_EMAIL in .env}
+      TEST_PASSWORD: ${MISA_TEST_PASSWORD:?Set MISA_TEST_PASSWORD in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wrighttest.app}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+    volumes:
+      - ./gallery-tests:/tests:ro
+      - ./scripts/import-tests.mjs:/import-tests.mjs:ro
+    command: ["node", "/import-tests.mjs"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   screenshots:
   traces:

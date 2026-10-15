@@ -6,13 +6,15 @@ const projectName = process.env.WRIGHTTEST_PROJECT ?? 'Misa';
 const email = process.env.ADMIN_EMAIL;
 const password = process.env.ADMIN_PASSWORD;
 const targetBaseUrl = (process.env.TEST_BASE_URL ?? 'https://misa.baxic.ru').replace(/\/$/, '');
+const targetApiUrl = (process.env.TEST_API_URL ?? targetBaseUrl).replace(/\/$/, '');
 const scheduleCron = process.env.TEST_SCHEDULE_CRON ?? '0 * * * *';
 const environmentName = process.env.TEST_ENVIRONMENT ?? 'Misa Production';
-const testEmail = process.env.MISA_TEST_EMAIL;
-const testPassword = process.env.MISA_TEST_PASSWORD;
+const testsDirectory = process.env.TESTS_DIR ?? '/tests';
+const testEmail = process.env.TEST_EMAIL ?? process.env.MISA_TEST_EMAIL;
+const testPassword = process.env.TEST_PASSWORD ?? process.env.MISA_TEST_PASSWORD;
 
 if (!email || !password || !testEmail || !testPassword) {
-  throw new Error('ADMIN_EMAIL, ADMIN_PASSWORD, MISA_TEST_EMAIL and MISA_TEST_PASSWORD are required');
+  throw new Error('ADMIN_EMAIL, ADMIN_PASSWORD, TEST_EMAIL and TEST_PASSWORD are required');
 }
 
 async function request(urlPath, options = {}) {
@@ -67,11 +69,14 @@ if (!project) {
 const environments = await request(`/projects/${project.id}/environments`, { headers });
 const environmentVariables = {
   BASE_URL: targetBaseUrl,
+  API_URL: targetApiUrl,
   LOGIN_URL: `${targetBaseUrl}/login?lang=ru`,
   LOGOUT_URL: `${targetBaseUrl}/login?lang=ru`,
   REGISTRATION_URL: `${targetBaseUrl}/registration?lang=ru`,
   FORGOT_PASSWORD_URL: `${targetBaseUrl}/forgot-password?lang=ru`,
   CHAT_URL: `${targetBaseUrl}/chat?lang=ru`,
+  GALLERY_URL: `${targetBaseUrl}/gallery`,
+  ADMIN_URL: `${targetBaseUrl}/admin`,
   TEST_EMAIL: testEmail,
   TEST_PASSWORD: testPassword,
 };
@@ -96,9 +101,9 @@ const existing = await request(`/projects/${project.id}/tests`, { headers });
 const testsByName = new Map(existing.map((test) => [test.name, test]));
 const schedules = await request(`/projects/${project.id}/schedules`, { headers });
 const schedulesByName = new Map(schedules.map((schedule) => [schedule.name, schedule]));
-const specs = await findSpecs('/tests');
+const specs = await findSpecs(testsDirectory);
 const desiredScheduleNames = new Set(specs.map((file) => {
-  const name = path.relative('/tests', file).replaceAll('\\', '/');
+  const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
   return `Hourly: ${name}`.slice(0, 100);
 }));
 
@@ -117,7 +122,7 @@ for (const importedTest of existing) {
 }
 
 for (const file of specs) {
-  const name = path.relative('/tests', file).replaceAll('\\', '/');
+  const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
   let importedTest = testsByName.get(name);
 
   if (importedTest) {

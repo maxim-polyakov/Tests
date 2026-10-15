@@ -447,3 +447,98 @@ spec:
         - name: tests
           configMap:
             name: wrighttest-tests
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: misagallery-test-importer
+  namespace: wrighttest
+  labels:
+    app: misagallery-test-importer
+    compose.project: wrighttest
+    compose.service: misagallery-test-importer
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: misagallery-test-importer
+        compose.project: wrighttest
+        compose.service: misagallery-test-importer
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        kubernetes.io/hostname: cp-baxic
+      initContainers:
+        - name: wait-for-backend
+          image: node:22-alpine
+          command:
+            - node
+            - -e
+            - >-
+              const wait = async () => {
+                for (;;) {
+                  try {
+                    const response = await fetch('http://backend:3000/health');
+                    if (response.ok) process.exit(0);
+                  } catch {}
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+                }
+              };
+              wait();
+      containers:
+        - name: test-importer
+          image: node:22-alpine
+          command: ["node", "/import-tests.mjs"]
+          env:
+            - name: WRIGHTTEST_API_URL
+              value: http://backend:3000
+            - name: WRIGHTTEST_PROJECT
+              value: MisaGallery
+            - name: TEST_BASE_URL
+              value: https://misagallery.baxic.ru
+            - name: TEST_API_URL
+              value: https://gallery.baxic.ru
+            - name: TEST_SCHEDULE_CRON
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: TEST_SCHEDULE_CRON
+                  optional: true
+            - name: TEST_ENVIRONMENT
+              value: MisaGallery Production
+            - name: TEST_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: MISA_TEST_EMAIL
+            - name: TEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: MISA_TEST_PASSWORD
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ADMIN_EMAIL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ADMIN_PASSWORD
+          volumeMounts:
+            - name: importer-script
+              mountPath: /import-tests.mjs
+              subPath: import-tests.mjs
+              readOnly: true
+            - name: tests
+              mountPath: /tests
+              readOnly: true
+      volumes:
+        - name: importer-script
+          configMap:
+            name: wrighttest-importer-script
+        - name: tests
+          configMap:
+            name: wrighttest-gallery-tests
