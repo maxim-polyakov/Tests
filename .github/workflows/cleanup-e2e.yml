@@ -1,0 +1,35 @@
+name: Cleanup E2E Jobs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H -p "$DEPLOY_PORT" "$DEPLOY_HOST" > ~/.ssh/known_hosts
+
+      - name: Stop E2E workloads
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "kubectl -n wrighttest delete job misa-e2e-deploy misagallery-e2e-deploy --ignore-not-found;
+             kubectl -n wrighttest delete pod -l app=misa-e2e --field-selector=status.phase=Running --ignore-not-found;
+             kubectl -n wrighttest delete pod -l app=misagallery-e2e --field-selector=status.phase=Running --ignore-not-found;
+             kubectl get nodes;
+             kubectl -n wrighttest get pods -o wide"
