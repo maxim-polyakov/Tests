@@ -96,6 +96,8 @@ const environmentVariables = {
   BASE_URL: targetBaseUrl,
   API_URL: targetApiUrl,
   API_IMAGES_URL: `${targetApiUrl}/api/images`,
+  API_PRODUCTS_URL: `${targetApiUrl}/product?page=0&size=10`,
+  PREVIEW_EN_URL: `${targetApiUrl}/og/preview?lang=en`,
   LOGIN_URL: `${targetBaseUrl}${loginPath}?lang=ru`,
   LOGIN_EN_URL: `${targetBaseUrl}${loginPath}?lang=en`,
   LOGIN_DE_URL: `${targetBaseUrl}${loginPath}?lang=de`,
