@@ -354,6 +354,7 @@ metadata:
     migrate.from: docker
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       labels:
@@ -459,6 +460,7 @@ metadata:
     compose.service: misagallery-test-importer
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 30
   template:
     metadata:
       labels:
