@@ -23,6 +23,13 @@ spec:
           restartPolicy: Never
           nodeSelector:
             baxic.ru/workload-pool: main
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: novnc
+                  topologyKey: kubernetes.io/hostname
           tolerations:
             - key: node.kubernetes.io/not-ready
               operator: Exists
