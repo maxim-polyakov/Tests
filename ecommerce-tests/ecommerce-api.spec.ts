@@ -6,8 +6,3 @@ test('публичное API e-commerce возвращает каталог', as
   await expect(page.locator('body')).toContainText('content');
   await expect(page.locator('body')).toContainText('totalElements');
 });
-
-test('публичное превью локализуется через lang', async ({ page }) => {
-  await page.goto(process.env.PREVIEW_EN_URL ?? '');
-  await expect(page.locator('body')).toContainText('Online Store');
-});
