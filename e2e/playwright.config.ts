@@ -8,7 +8,7 @@ export default defineConfig({
   timeout: 90_000,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['html', { outputFolder: 'misa-playwright-report', open: 'never' }],
     ['./wrighttest-reporter.ts'],
   ],
   use: {
@@ -24,5 +24,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  outputDir: 'test-results',
+  outputDir: 'misa-test-results',
 });

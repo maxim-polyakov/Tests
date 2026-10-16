@@ -2,6 +2,8 @@
 node_modules/
 playwright-report/
 test-results/
+misa-playwright-report/
+misa-test-results/
 gallery-playwright-report/
 gallery-test-results/
 ecommerce-playwright-report/
