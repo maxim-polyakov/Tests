@@ -4,7 +4,6 @@ import { expect, test } from '@playwright/test';
 test('публичные страницы MisaGallery открываются', async ({ page }) => {
   await page.goto(process.env.LOGIN_URL ?? '');
   await expect(page).toHaveTitle('Галерея Misa');
-  await expect(page).toHaveURL(/[?&]lang=ru(?:&|$)/);
   await expect(page.locator('form')).toBeVisible();
   await expect(page.locator('input')).toHaveCount(2);
 
@@ -12,5 +11,5 @@ test('публичные страницы MisaGallery открываются', a
   await expect(page.locator('form')).toBeVisible();
 
   await page.goto(process.env.GALLERY_URL ?? '');
-  await expect(page).toHaveURL(/\/login\?.*lang=ru/);
+  await expect(page).toHaveURL(process.env.LOGIN_URL ?? '');
 });

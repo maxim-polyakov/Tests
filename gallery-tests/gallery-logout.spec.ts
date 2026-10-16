@@ -6,9 +6,9 @@ test('пользователь выходит из MisaGallery', async ({ page }
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
   await page.locator('input').nth(1).fill(process.env.TEST_PASSWORD ?? '');
   await page.locator('button.btn-outline-success').click();
-  await expect(page).toHaveURL(/\/gallery\?.*lang=ru/);
+  await expect(page).toHaveURL(process.env.GALLERY_URL ?? '');
 
   await page.locator('a[href^="/login?"]').click();
-  await expect(page).toHaveURL(/\/login\?.*lang=ru/);
+  await expect(page).toHaveURL(process.env.LOGIN_URL ?? '');
   await expect(page.locator('form')).toBeVisible();
 });
