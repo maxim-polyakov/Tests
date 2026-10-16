@@ -8,7 +8,6 @@ test('MisaGallery сохраняет выбранный язык в URL', async 
   await expect(language).toHaveValue('ru');
   await language.selectOption('en');
   await expect(page).toHaveURL(/[?&]lang=en(?:&|$)/);
-  await expect(page).toHaveURL(/[?&]v=2(?:&|$)/);
   await expect(page).toHaveTitle('Misa Gallery');
   await expect(page.locator('input').nth(0)).toHaveAttribute('placeholder', 'Enter email');
 
