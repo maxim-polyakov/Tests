@@ -171,6 +171,11 @@ apply_schema_patches() {
   if [[ "$service" == *smtp* ]] || [[ "$deployment" == *smtp* ]] || [[ "$source_image" == *maildev* ]]; then
     is_maildev=true
   fi
+  if [[ "$is_maildev" != true ]]; then
+    "${kube[@]}" patch deployment "$deployment" -n "$namespace" --type=json \
+      -p='[{"op":"remove","path":"/spec/template/spec/dnsConfig"}]' \
+      >/dev/null 2>&1 || true
+  fi
   if [[ "$is_maildev" == true && "${COMPOSE_K3S_SKIP_SMTP_DNS:-}" != 1 ]]; then
     sync_compose_service_environment "$namespace" "$deployment" "$service"
     local maildev_dns_patch
