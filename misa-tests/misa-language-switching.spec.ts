@@ -14,6 +14,7 @@ test('интерфейс Misa переключается между языкам
 
   await page.locator('.settings-modal-nav-item').nth(0).click();
   await page.locator('.settings-language-select').selectOption('en');
+  await expect(page).toHaveURL(/[?&]lang=en(?:&|$)/);
   await expect(page.locator('.settings-modal-title')).toHaveText('Settings');
   await page.locator('.settings-language-select').selectOption('de');
   await page.locator('.settings-language-select').selectOption('sq');
@@ -89,9 +90,11 @@ test('интерфейс Misa переключается между языкам
   await page.locator('.settings-language-select').selectOption('haw');
   await page.locator('.settings-language-select').selectOption('ig');
   await page.locator('.settings-language-select').selectOption('ar');
+  await expect(page).toHaveURL(/[?&]lang=ar(?:&|$)/);
   await expect(page.locator('.settings-modal-title')).toHaveText('الإعدادات');
 
   await page.locator('.settings-language-select').selectOption('ru');
+  await expect(page).toHaveURL(/[?&]lang=ru(?:&|$)/);
   await expect(page.locator('.settings-modal-title')).toHaveText('Настройки');
   await expect(page.locator('.new-chat-text')).toHaveText('Новый чат');
 });

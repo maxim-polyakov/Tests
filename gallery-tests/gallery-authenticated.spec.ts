@@ -6,7 +6,7 @@ async function login(page) {
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
   await page.locator('input').nth(1).fill(process.env.TEST_PASSWORD ?? '');
   await page.locator('button.btn-outline-success').click();
-  await expect(page).toHaveURL(process.env.GALLERY_URL ?? '');
+  await expect(page).toHaveURL(/\/gallery\?.*lang=ru.*v=2/);
 }
 
 test('авторизованный пользователь видит рисунки MisaGallery', async ({ page }) => {

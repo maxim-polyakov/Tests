@@ -37,8 +37,10 @@ test('profile menu and every safe settings control', async ({ page }) => {
   await page.getByRole('button', { name: 'Тёмная' }).click();
   await page.getByRole('button', { name: 'Системная' }).click();
   await page.locator('.settings-language-select').selectOption('en');
+  await expect(page).toHaveURL(/[?&]lang=en(?:&|$)/);
   await expect(page.locator('.settings-modal-title')).toHaveText('Settings');
   await page.locator('.settings-language-select').selectOption('ru');
+  await expect(page).toHaveURL(/[?&]lang=ru(?:&|$)/);
   await expect(page.locator('.settings-modal-title')).toHaveText('Настройки');
 
   await page.locator('.settings-modal-nav-item').nth(1).click();

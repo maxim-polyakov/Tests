@@ -6,17 +6,17 @@ async function login(page) {
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
   await page.locator('input').nth(1).fill(process.env.TEST_PASSWORD ?? '');
   await page.locator('button.btn-outline-success').click();
-  await expect(page).toHaveURL(process.env.GALLERY_URL ?? '');
+  await expect(page).toHaveURL(/\/gallery\?.*lang=ru.*v=2/);
 }
 
 test('панель администратора MisaGallery защищена от обычного пользователя', async ({ page }) => {
   await login(page);
 
-  await expect(page.locator('a[href="/admin"]')).toHaveCount(0);
+  await expect(page.locator('a[href^="/admin?"]')).toHaveCount(0);
   await page.goto(process.env.ADMIN_URL ?? '');
-  await expect(page).toHaveURL(process.env.ADMIN_URL ?? '');
+  await expect(page).toHaveURL(/\/admin\?.*lang=ru.*v=2/);
 
   await expect(page.locator('.alert-danger')).toBeVisible();
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
-  await expect(page.locator('a[href="/gallery"]').last()).toBeVisible();
+  await expect(page.locator('a[href^="/gallery?"]').last()).toBeVisible();
 });
