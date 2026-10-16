@@ -32,16 +32,6 @@ spec:
               operator: Exists
               effect: NoExecute
               tolerationSeconds: 120
-          initContainers:
-            - name: prepare-tests
-              image: busybox:1.37
-              command: ["sh", "-c", "tar -xzf /archive/e2e.tgz -C /work"]
-              volumeMounts:
-                - name: tests-archive
-                  mountPath: /archive
-                  readOnly: true
-                - name: tests
-                  mountPath: /work
           containers:
             - name: playwright
               image: mcr.microsoft.com/playwright:v1.61.0-jammy
@@ -89,10 +79,9 @@ spec:
               volumeMounts:
                 - name: tests
                   mountPath: /work
+                  subPath: e2e
                   readOnly: false
           volumes:
-            - name: tests-archive
-              configMap:
-                name: wrighttest-e2e
             - name: tests
-              emptyDir: {}
+              persistentVolumeClaim:
+                claimName: wrighttest-data

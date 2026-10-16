@@ -92,11 +92,6 @@ jobs:
              kubectl -n wrighttest create secret generic wrighttest-env \
                --from-env-file=.env \
                --dry-run=client -o yaml | kubectl apply -f -
-             tar -czf /tmp/wrighttest-e2e-${GITHUB_SHA}.tgz -C e2e .
-             kubectl -n wrighttest create configmap wrighttest-e2e \
-               --from-file=e2e.tgz=/tmp/wrighttest-e2e-${GITHUB_SHA}.tgz \
-               --dry-run=client -o yaml | kubectl apply -f -
-             rm /tmp/wrighttest-e2e-${GITHUB_SHA}.tgz
              kubectl -n wrighttest create configmap wrighttest-importer-script \
                --from-file=import-tests.mjs=scripts/import-tests.mjs \
                --dry-run=client -o yaml | kubectl apply -f -
@@ -122,6 +117,15 @@ jobs:
              kubectl -n wrighttest rollout status deployment/novnc --timeout=180s
              kubectl -n wrighttest rollout status deployment/backend --timeout=300s
              kubectl -n wrighttest rollout status deployment/frontend --timeout=180s
+             kubectl -n wrighttest delete pod wrighttest-e2e-sync --ignore-not-found --wait=true
+             kubectl -n wrighttest run wrighttest-e2e-sync \
+               --image=busybox:1.37 \
+               --restart=Never \
+               --overrides='{\"apiVersion\":\"v1\",\"spec\":{\"nodeSelector\":{\"baxic.ru/workload-pool\":\"main\"},\"affinity\":{\"podAffinity\":{\"requiredDuringSchedulingIgnoredDuringExecution\":[{\"labelSelector\":{\"matchLabels\":{\"app\":\"novnc\"}},\"topologyKey\":\"kubernetes.io/hostname\"}]}},\"containers\":[{\"name\":\"wrighttest-e2e-sync\",\"image\":\"busybox:1.37\",\"command\":[\"sleep\",\"600\"],\"volumeMounts\":[{\"name\":\"wrighttest-data\",\"mountPath\":\"/data\"}]}],\"volumes\":[{\"name\":\"wrighttest-data\",\"persistentVolumeClaim\":{\"claimName\":\"wrighttest-data\"}}]}}'
+             kubectl -n wrighttest wait --for=condition=Ready pod/wrighttest-e2e-sync --timeout=180s
+             kubectl -n wrighttest exec wrighttest-e2e-sync -- sh -c 'rm -rf /data/e2e && mkdir -p /data/e2e'
+             kubectl -n wrighttest cp e2e/. wrighttest-e2e-sync:/data/e2e
+             kubectl -n wrighttest delete pod wrighttest-e2e-sync --wait=true
              if ! kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s; then
                kubectl -n wrighttest describe job/test-importer || true
                kubectl -n wrighttest logs job/test-importer --all-containers=true --tail=-1 || true
