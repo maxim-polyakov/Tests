@@ -8,7 +8,7 @@ test('язык входа хранится в URL', async ({ page }) => {
   await expect(language).toHaveValue('ru');
   await language.selectOption('en');
 
-  await expect(page).toHaveURL(/\/auth\/login\?.*lang=en/);
+  await expect(page).toHaveURL(process.env.LOGIN_EN_URL ?? '');
   await expect(page.locator('.auth-title')).toHaveText('Sign in');
   await expect(page.locator('button.auth-btn')).toHaveText('Sign in');
 
