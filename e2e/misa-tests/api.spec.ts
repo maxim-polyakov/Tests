@@ -51,7 +51,7 @@ test.describe('Misa API', () => {
     expect(chats.ok()).toBeTruthy();
 
     const exported = await authorized.get('/api/chats/export/');
-    expect(exported.ok()).toBeTruthy();
+    expect(exported.status(), await exported.text()).toBe(200);
 
     const locale = await api.post('/api/ui-locale/', { data: { locale: 'ru' } });
     expect(locale.status(), await locale.text()).toBe(200);

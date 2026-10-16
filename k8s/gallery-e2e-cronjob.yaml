@@ -70,6 +70,7 @@ spec:
               volumeMounts:
                 - name: tests
                   mountPath: /work
+                  readOnly: false
           volumes:
             - name: tests
               hostPath:
