@@ -28,8 +28,9 @@ jobs:
       - name: Stop E2E workloads
         run: |
           ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
-            "kubectl -n wrighttest delete job misa-e2e-deploy misagallery-e2e-deploy --ignore-not-found;
+            "kubectl -n wrighttest delete job misa-e2e-deploy misagallery-e2e-deploy ecommerce-e2e-deploy --ignore-not-found;
              kubectl -n wrighttest delete pod -l app=misa-e2e --field-selector=status.phase=Running --ignore-not-found;
              kubectl -n wrighttest delete pod -l app=misagallery-e2e --field-selector=status.phase=Running --ignore-not-found;
+             kubectl -n wrighttest delete pod -l app=ecommerce-e2e --field-selector=status.phase=Running --ignore-not-found;
              kubectl get nodes;
              kubectl -n wrighttest get pods -o wide"

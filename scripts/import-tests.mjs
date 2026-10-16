@@ -13,6 +13,10 @@ const environmentName = process.env.TEST_ENVIRONMENT ?? 'Misa Production';
 const testsDirectory = process.env.TESTS_DIR ?? '/misa-tests';
 const testEmail = process.env.TEST_EMAIL ?? process.env.MISA_TEST_EMAIL;
 const testPassword = process.env.TEST_PASSWORD ?? process.env.MISA_TEST_PASSWORD;
+const loginPath = process.env.TEST_LOGIN_PATH ?? '/login';
+const registrationPath = process.env.TEST_REGISTRATION_PATH ?? '/registration';
+const forgotPasswordPath = process.env.TEST_FORGOT_PASSWORD_PATH ?? '/forgot-password';
+const shopPath = process.env.TEST_SHOP_PATH ?? '/shop';
 
 if (!email || !password || !testEmail || !testPassword) {
   throw new Error('ADMIN_EMAIL, ADMIN_PASSWORD, TEST_EMAIL and TEST_PASSWORD are required');
@@ -92,13 +96,14 @@ const environmentVariables = {
   BASE_URL: targetBaseUrl,
   API_URL: targetApiUrl,
   API_IMAGES_URL: `${targetApiUrl}/api/images`,
-  LOGIN_URL: `${targetBaseUrl}/login?lang=ru`,
-  LOGIN_EN_URL: `${targetBaseUrl}/login?lang=en`,
-  LOGIN_DE_URL: `${targetBaseUrl}/login?lang=de`,
-  LOGIN_PAGE_URL: `${targetBaseUrl}/login?lang=ru`,
-  LOGOUT_URL: `${targetBaseUrl}/login?lang=ru`,
-  REGISTRATION_URL: `${targetBaseUrl}/registration?lang=ru`,
-  FORGOT_PASSWORD_URL: `${targetBaseUrl}/forgot-password?lang=ru`,
+  LOGIN_URL: `${targetBaseUrl}${loginPath}?lang=ru`,
+  LOGIN_EN_URL: `${targetBaseUrl}${loginPath}?lang=en`,
+  LOGIN_DE_URL: `${targetBaseUrl}${loginPath}?lang=de`,
+  LOGIN_PAGE_URL: `${targetBaseUrl}${loginPath}?lang=ru`,
+  LOGOUT_URL: `${targetBaseUrl}${loginPath}?lang=ru`,
+  REGISTRATION_URL: `${targetBaseUrl}${registrationPath}?lang=ru`,
+  FORGOT_PASSWORD_URL: `${targetBaseUrl}${forgotPasswordPath}?lang=ru`,
+  SHOP_URL: `${targetBaseUrl}${shopPath}?lang=ru`,
   CHAT_URL: `${targetBaseUrl}/chat?lang=ru`,
   CHAT_EN_URL: `${targetBaseUrl}/chat?lang=en`,
   CHAT_AR_URL: `${targetBaseUrl}/chat?lang=ar`,

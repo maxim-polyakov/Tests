@@ -1,0 +1,92 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ecommerce-e2e
+  namespace: wrighttest
+  labels:
+    app: ecommerce-e2e
+    compose.project: wrighttest
+spec:
+  schedule: "40 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            app: ecommerce-e2e
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            baxic.ru/workload-pool: main
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: novnc
+                  topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: node.kubernetes.io/not-ready
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+            - key: node.kubernetes.io/unreachable
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+          containers:
+            - name: playwright
+              image: mcr.microsoft.com/playwright:v1.61.0-jammy
+              imagePullPolicy: IfNotPresent
+              workingDir: /work
+              command:
+                - /bin/sh
+                - -lc
+                - npm ci --ignore-scripts && npx playwright test --config=ecommerce.playwright.config.ts
+              env:
+                - name: CI
+                  value: "true"
+                - name: ECOMMERCE_BASE_URL
+                  value: https://ecommerce.baxic.ru
+                - name: ECOMMERCE_API_URL
+                  value: https://ecommerceapi.baxic.ru
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: DATABASE_URL
+                - name: WRIGHTTEST_PROJECT
+                  value: ECommerce
+                - name: TEST_ENVIRONMENT
+                  value: ECommerce Production
+                - name: ECOMMERCE_TEST_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: ECOMMERCE_TEST_EMAIL
+                - name: ECOMMERCE_TEST_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: ECOMMERCE_TEST_PASSWORD
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: "1"
+                  memory: 2Gi
+              volumeMounts:
+                - name: tests
+                  mountPath: /work
+                  subPath: e2e
+                  readOnly: false
+          volumes:
+            - name: tests
+              persistentVolumeClaim:
+                claimName: wrighttest-data

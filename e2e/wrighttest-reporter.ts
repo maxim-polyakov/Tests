@@ -38,6 +38,8 @@ export default class WrightTestReporter implements Reporter {
     const projectName = process.env.WRIGHTTEST_PROJECT ?? 'Misa';
     const environmentName = process.env.TEST_ENVIRONMENT ?? 'Misa Production';
     const baseUrl = process.env.E2E_BASE_URL
+      ?? process.env.ECOMMERCE_BASE_URL
+      ?? process.env.GALLERY_BASE_URL
       ?? process.env.MISA_BASE_URL
       ?? 'https://misa.baxic.ru';
     const pool = new Pool({

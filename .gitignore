@@ -4,3 +4,5 @@ playwright-report/
 test-results/
 gallery-playwright-report/
 gallery-test-results/
+ecommerce-playwright-report/
+ecommerce-test-results/

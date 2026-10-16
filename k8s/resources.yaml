@@ -631,3 +631,114 @@ spec:
         - name: gallery-tests
           configMap:
             name: wrighttest-gallery-tests
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ecommerce-test-importer
+  namespace: wrighttest
+  labels:
+    app: ecommerce-test-importer
+    compose.project: wrighttest
+    compose.service: ecommerce-test-importer
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 900
+  template:
+    metadata:
+      labels:
+        app: ecommerce-test-importer
+        compose.project: wrighttest
+        compose.service: ecommerce-test-importer
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+      initContainers:
+        - name: wait-for-backend
+          image: node:22-alpine
+          command:
+            - node
+            - -e
+            - >-
+              const wait = async () => {
+                for (;;) {
+                  try {
+                    const response = await fetch('http://backend:3000/health');
+                    if (response.ok) process.exit(0);
+                  } catch {}
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+                }
+              };
+              wait();
+      containers:
+        - name: test-importer
+          image: node:22-alpine
+          command: ["node", "/import-tests.mjs"]
+          env:
+            - name: WRIGHTTEST_API_URL
+              value: http://backend:3000
+            - name: WRIGHTTEST_PROJECT
+              value: ECommerce
+            - name: TEST_BASE_URL
+              value: https://ecommerce.baxic.ru
+            - name: TEST_API_URL
+              value: https://ecommerceapi.baxic.ru
+            - name: TEST_SCHEDULE_CRON
+              value: "10 * * * *"
+            - name: TEST_ENVIRONMENT
+              value: ECommerce Production
+            - name: TESTS_DIR
+              value: /ecommerce-tests
+            - name: TEST_LOGIN_PATH
+              value: /auth/login
+            - name: TEST_REGISTRATION_PATH
+              value: /auth/registration
+            - name: TEST_FORGOT_PASSWORD_PATH
+              value: /auth/forgot-password
+            - name: TEST_SHOP_PATH
+              value: /shop
+            - name: TEST_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ECOMMERCE_TEST_EMAIL
+            - name: TEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ECOMMERCE_TEST_PASSWORD
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ADMIN_EMAIL
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wrighttest-env
+                  key: ADMIN_PASSWORD
+          volumeMounts:
+            - name: importer-script
+              mountPath: /import-tests.mjs
+              subPath: import-tests.mjs
+              readOnly: true
+            - name: ecommerce-tests
+              mountPath: /ecommerce-tests
+              readOnly: true
+      volumes:
+        - name: importer-script
+          configMap:
+            name: wrighttest-importer-script
+        - name: ecommerce-tests
+          configMap:
+            name: wrighttest-ecommerce-tests

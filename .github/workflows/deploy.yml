@@ -9,6 +9,7 @@ on:
       - k8s/**
       - misa-tests/**
       - gallery-tests/**
+      - ecommerce-tests/**
       - scripts/**
       - .github/workflows/deploy.yml
   workflow_dispatch:
@@ -53,7 +54,7 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
           printf '%s\n' "$DEPLOY_ENV" > .env
-          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s misa-tests gallery-tests scripts
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s misa-tests gallery-tests ecommerce-tests scripts
 
       - name: Upload deployment files
         env:
@@ -102,11 +103,16 @@ jobs:
              kubectl -n wrighttest create configmap wrighttest-gallery-tests \
                --from-file=gallery-tests \
                --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest create configmap wrighttest-ecommerce-tests \
+               --from-file=ecommerce-tests \
+               --dry-run=client -o yaml | kubectl apply -f -
              kubectl -n wrighttest delete job test-importer --ignore-not-found
              kubectl -n wrighttest delete job misagallery-test-importer --ignore-not-found
+             kubectl -n wrighttest delete job ecommerce-test-importer --ignore-not-found
              kubectl apply -f k8s/resources.yaml
              kubectl apply -f k8s/e2e-cronjob.yaml
              kubectl apply -f k8s/gallery-e2e-cronjob.yaml
+             kubectl apply -f k8s/ecommerce-e2e-cronjob.yaml
              stdbuf -oL -eL bash '$DEPLOY_PATH/scripts/compose-k3s-sync.sh' \
                --compose-file compose.yaml \
                --project-dir '$DEPLOY_PATH' \
@@ -134,6 +140,11 @@ jobs:
              if ! kubectl -n wrighttest wait --for=condition=complete job/misagallery-test-importer --timeout=300s; then
                kubectl -n wrighttest describe job/misagallery-test-importer || true
                kubectl -n wrighttest logs job/misagallery-test-importer --all-containers=true --tail=-1 || true
+               exit 1
+             fi
+             if ! kubectl -n wrighttest wait --for=condition=complete job/ecommerce-test-importer --timeout=300s; then
+               kubectl -n wrighttest describe job/ecommerce-test-importer || true
+               kubectl -n wrighttest logs job/ecommerce-test-importer --all-containers=true --tail=-1 || true
                exit 1
              fi
              kubectl -n wrighttest get pods -o wide"

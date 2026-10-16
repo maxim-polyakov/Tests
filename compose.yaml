@@ -123,6 +123,33 @@ services:
       backend:
         condition: service_healthy
 
+  ecommerce-test-importer:
+    image: node:22-alpine
+    restart: "no"
+    environment:
+      WRIGHTTEST_API_URL: http://backend:3000
+      WRIGHTTEST_PROJECT: ECommerce
+      TEST_BASE_URL: https://ecommerce.baxic.ru
+      TEST_API_URL: https://ecommerceapi.baxic.ru
+      TEST_SCHEDULE_CRON: "10 * * * *"
+      TEST_ENVIRONMENT: ECommerce Production
+      TESTS_DIR: /ecommerce-tests
+      TEST_LOGIN_PATH: /auth/login
+      TEST_REGISTRATION_PATH: /auth/registration
+      TEST_FORGOT_PASSWORD_PATH: /auth/forgot-password
+      TEST_SHOP_PATH: /shop
+      TEST_EMAIL: ${ECOMMERCE_TEST_EMAIL:?Set ECOMMERCE_TEST_EMAIL in .env}
+      TEST_PASSWORD: ${ECOMMERCE_TEST_PASSWORD:?Set ECOMMERCE_TEST_PASSWORD in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wrighttest.app}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+    volumes:
+      - ./ecommerce-tests:/ecommerce-tests:ro
+      - ./scripts/import-tests.mjs:/import-tests.mjs:ro
+    command: ["node", "/import-tests.mjs"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   screenshots:
   traces:
