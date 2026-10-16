@@ -22,7 +22,16 @@ spec:
         migrate.from: docker
     spec:
       nodeSelector:
-        kubernetes.io/hostname: cp-baxic
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
       containers:
         - name: redis
           image: redis:7-alpine
@@ -41,6 +50,19 @@ spec:
               memory: 64Mi
             limits:
               memory: 256Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wrighttest-data
+  namespace: wrighttest
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: Service
@@ -85,7 +107,23 @@ spec:
         migrate.from: docker
     spec:
       nodeSelector:
-        kubernetes.io/hostname: cp-baxic
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+      initContainers:
+        - name: prepare-shared-data
+          image: busybox:1.37
+          command: ["sh", "-c", "mkdir -p /data/x11"]
+          volumeMounts:
+            - name: wrighttest-data
+              mountPath: /data
       containers:
         - name: novnc
           image: sacha1bu/wrighttest-novnc:0.2.0
@@ -98,7 +136,6 @@ spec:
           ports:
             - name: novnc
               containerPort: 6080
-              hostPort: 6080
           readinessProbe:
             httpGet:
               path: /vnc.html
@@ -106,8 +143,9 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           volumeMounts:
-            - name: x11
+            - name: wrighttest-data
               mountPath: /tmp/.X11-unix
+              subPath: x11
             - name: shm
               mountPath: /dev/shm
           resources:
@@ -117,10 +155,9 @@ spec:
             limits:
               memory: 512Mi
       volumes:
-        - name: x11
-          hostPath:
-            path: /home/baxic/Documents/GitHub/Writetest/data/x11
-            type: DirectoryOrCreate
+        - name: wrighttest-data
+          persistentVolumeClaim:
+            claimName: wrighttest-data
         - name: shm
           emptyDir:
             medium: Memory
@@ -136,12 +173,14 @@ metadata:
     compose.service: novnc
     migrate.from: docker
 spec:
+  type: NodePort
   selector:
     app: novnc
   ports:
     - name: novnc
       port: 6080
       targetPort: novnc
+      nodePort: 31920
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -169,7 +208,33 @@ spec:
         migrate.from: docker
     spec:
       nodeSelector:
-        kubernetes.io/hostname: cp-baxic
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: novnc
+              topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: prepare-shared-data
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - mkdir -p /data/screenshots /data/traces /data/auth-states /data/x11
+          volumeMounts:
+            - name: wrighttest-data
+              mountPath: /data
       hostAliases:
         - ip: 89.124.86.173
           hostnames:
@@ -205,7 +270,6 @@ spec:
           ports:
             - name: backend
               containerPort: 3000
-              hostPort: 3000
           startupProbe:
             httpGet:
               path: /health
@@ -218,14 +282,18 @@ spec:
               port: backend
             periodSeconds: 10
           volumeMounts:
-            - name: screenshots
+            - name: wrighttest-data
               mountPath: /app/backend/screenshots
-            - name: traces
+              subPath: screenshots
+            - name: wrighttest-data
               mountPath: /app/backend/traces
-            - name: auth-states
+              subPath: traces
+            - name: wrighttest-data
               mountPath: /app/backend/auth-states
-            - name: x11
+              subPath: auth-states
+            - name: wrighttest-data
               mountPath: /tmp/.X11-unix
+              subPath: x11
             - name: shm
               mountPath: /dev/shm
           resources:
@@ -235,22 +303,9 @@ spec:
             limits:
               memory: 2Gi
       volumes:
-        - name: screenshots
-          hostPath:
-            path: /home/baxic/Documents/GitHub/Writetest/data/screenshots
-            type: DirectoryOrCreate
-        - name: traces
-          hostPath:
-            path: /home/baxic/Documents/GitHub/Writetest/data/traces
-            type: DirectoryOrCreate
-        - name: auth-states
-          hostPath:
-            path: /home/baxic/Documents/GitHub/Writetest/data/auth-states
-            type: DirectoryOrCreate
-        - name: x11
-          hostPath:
-            path: /home/baxic/Documents/GitHub/Writetest/data/x11
-            type: DirectoryOrCreate
+        - name: wrighttest-data
+          persistentVolumeClaim:
+            claimName: wrighttest-data
         - name: shm
           emptyDir:
             medium: Memory
@@ -266,12 +321,14 @@ metadata:
     compose.service: backend
     migrate.from: docker
 spec:
+  type: NodePort
   selector:
     app: backend
   ports:
     - name: backend
       port: 3000
       targetPort: backend
+      nodePort: 31203
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -297,7 +354,16 @@ spec:
         migrate.from: docker
     spec:
       nodeSelector:
-        kubernetes.io/hostname: cp-baxic
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
       containers:
         - name: frontend
           image: sacha1bu/wrighttest-frontend:0.2.0
@@ -311,7 +377,6 @@ spec:
           ports:
             - name: frontend
               containerPort: 80
-              hostPort: 5173
           readinessProbe:
             httpGet:
               path: /
@@ -335,12 +400,14 @@ metadata:
     compose.service: frontend
     migrate.from: docker
 spec:
+  type: NodePort
   selector:
     app: frontend
   ports:
     - name: http
       port: 80
       targetPort: frontend
+      nodePort: 30717
 ---
 apiVersion: batch/v1
 kind: Job
@@ -365,7 +432,16 @@ spec:
     spec:
       restartPolicy: Never
       nodeSelector:
-        kubernetes.io/hostname: cp-baxic
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
       initContainers:
         - name: wait-for-backend
           image: node:22-alpine
@@ -470,7 +546,16 @@ spec:
     spec:
       restartPolicy: Never
       nodeSelector:
-        kubernetes.io/hostname: cp-baxic
+        baxic.ru/workload-pool: main
+      tolerations:
+        - key: node.kubernetes.io/not-ready
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
+        - key: node.kubernetes.io/unreachable
+          operator: Exists
+          effect: NoExecute
+          tolerationSeconds: 120
       initContainers:
         - name: wait-for-backend
           image: node:22-alpine

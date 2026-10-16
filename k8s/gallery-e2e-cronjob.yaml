@@ -22,7 +22,26 @@ spec:
         spec:
           restartPolicy: Never
           nodeSelector:
-            kubernetes.io/hostname: cp-baxic
+            baxic.ru/workload-pool: main
+          tolerations:
+            - key: node.kubernetes.io/not-ready
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+            - key: node.kubernetes.io/unreachable
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+          initContainers:
+            - name: prepare-tests
+              image: busybox:1.37
+              command: ["sh", "-c", "tar -xzf /archive/e2e.tgz -C /work"]
+              volumeMounts:
+                - name: tests-archive
+                  mountPath: /archive
+                  readOnly: true
+                - name: tests
+                  mountPath: /work
           containers:
             - name: playwright
               image: mcr.microsoft.com/playwright:v1.61.0-jammy
@@ -72,7 +91,8 @@ spec:
                   mountPath: /work
                   readOnly: false
           volumes:
+            - name: tests-archive
+              configMap:
+                name: wrighttest-e2e
             - name: tests
-              hostPath:
-                path: /home/baxic/Documents/GitHub/Writetest/e2e
-                type: Directory
+              emptyDir: {}

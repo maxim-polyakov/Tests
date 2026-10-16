@@ -92,6 +92,11 @@ jobs:
              kubectl -n wrighttest create secret generic wrighttest-env \
                --from-env-file=.env \
                --dry-run=client -o yaml | kubectl apply -f -
+             tar -czf /tmp/wrighttest-e2e-${GITHUB_SHA}.tgz -C e2e .
+             kubectl -n wrighttest create configmap wrighttest-e2e \
+               --from-file=e2e.tgz=/tmp/wrighttest-e2e-${GITHUB_SHA}.tgz \
+               --dry-run=client -o yaml | kubectl apply -f -
+             rm /tmp/wrighttest-e2e-${GITHUB_SHA}.tgz
              kubectl -n wrighttest create configmap wrighttest-importer-script \
                --from-file=import-tests.mjs=scripts/import-tests.mjs \
                --dry-run=client -o yaml | kubectl apply -f -
