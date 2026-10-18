@@ -100,6 +100,7 @@ const environmentVariables = {
   API_PRODUCTS_URL: `${targetApiUrl}/product?page=0&size=10`,
   LOGIN_URL: `${targetBaseUrl}${loginPath}?lang=ru`,
   LOGIN_EN_URL: `${targetBaseUrl}${loginPath}?lang=en`,
+  LOGIN_AR_URL: `${targetBaseUrl}${loginPath}?lang=ar`,
   LOGIN_DE_URL: `${targetBaseUrl}${loginPath}?lang=de`,
   LOGIN_PAGE_URL: `${targetBaseUrl}${loginPath}?lang=ru`,
   LOGOUT_URL: `${targetBaseUrl}${loginPath}?lang=ru`,

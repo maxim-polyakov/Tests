@@ -22,7 +22,7 @@ test('Canban включает RTL для арабского языка', async (
   await page.goto(process.env.LOGIN_URL ?? '');
   await page.locator('.language-selector select').selectOption('ar');
 
-  await expect(page).toHaveURL(/[?&]lang=ar(?:&|$)/);
+  await expect(page).toHaveURL(process.env.LOGIN_AR_URL ?? '');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.locator('.language-selector')).not.toContainText('🌐');
