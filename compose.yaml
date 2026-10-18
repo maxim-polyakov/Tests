@@ -150,6 +150,27 @@ services:
       backend:
         condition: service_healthy
 
+  businesscard-test-importer:
+    image: node:22-alpine
+    restart: "no"
+    environment:
+      WRIGHTTEST_API_URL: http://backend:3000
+      WRIGHTTEST_PROJECT: BusinessCard
+      TEST_BASE_URL: https://baxic.ru
+      TEST_API_URL: https://baxicapi.baxic.ru
+      TEST_SCHEDULE_CRON: "15 * * * *"
+      TEST_ENVIRONMENT: BusinessCard Production
+      TESTS_DIR: /businesscard-tests
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@wrighttest.app}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+    volumes:
+      - ./businesscard-tests:/businesscard-tests:ro
+      - ./scripts/import-tests.mjs:/import-tests.mjs:ro
+    command: ["node", "/import-tests.mjs"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   screenshots:
   traces:

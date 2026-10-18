@@ -1,0 +1,84 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: businesscard-e2e
+  namespace: wrighttest
+  labels:
+    app: businesscard-e2e
+    compose.project: wrighttest
+spec:
+  schedule: "25 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            app: businesscard-e2e
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            baxic.ru/workload-pool: main
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: novnc
+                  topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: node.kubernetes.io/not-ready
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+            - key: node.kubernetes.io/unreachable
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+          containers:
+            - name: playwright
+              image: mcr.microsoft.com/playwright:v1.61.0-jammy
+              imagePullPolicy: IfNotPresent
+              workingDir: /work
+              command:
+                - /bin/sh
+                - -lc
+                - npm ci --ignore-scripts && npx playwright test --config=businesscard.playwright.config.ts
+              env:
+                - name: CI
+                  value: "true"
+                - name: BUSINESSCARD_BASE_URL
+                  value: https://baxic.ru
+                - name: BUSINESSCARD_API_URL
+                  value: https://baxicapi.baxic.ru
+                - name: E2E_BASE_URL
+                  value: https://baxic.ru
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: wrighttest-env
+                      key: DATABASE_URL
+                - name: WRIGHTTEST_PROJECT
+                  value: BusinessCard
+                - name: TEST_ENVIRONMENT
+                  value: BusinessCard Production
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
+                limits:
+                  cpu: "1"
+                  memory: 2Gi
+              volumeMounts:
+                - name: tests
+                  mountPath: /work
+                  subPath: e2e
+                  readOnly: false
+          volumes:
+            - name: tests
+              persistentVolumeClaim:
+                claimName: wrighttest-data

@@ -18,8 +18,8 @@ const registrationPath = process.env.TEST_REGISTRATION_PATH ?? '/registration';
 const forgotPasswordPath = process.env.TEST_FORGOT_PASSWORD_PATH ?? '/forgot-password';
 const shopPath = process.env.TEST_SHOP_PATH ?? '/shop';
 
-if (!email || !password || !testEmail || !testPassword) {
-  throw new Error('ADMIN_EMAIL, ADMIN_PASSWORD, TEST_EMAIL and TEST_PASSWORD are required');
+if (!email || !password) {
+  throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD are required');
 }
 
 if (!Number.isInteger(scheduleStepMinutes) || scheduleStepMinutes < 1) {
@@ -110,8 +110,14 @@ const environmentVariables = {
   CHAT_AR_URL: `${targetBaseUrl}/chat?lang=ar`,
   GALLERY_URL: `${targetBaseUrl}/gallery?lang=ru`,
   ADMIN_URL: `${targetBaseUrl}/admin?lang=ru`,
-  TEST_EMAIL: testEmail,
-  TEST_PASSWORD: testPassword,
+  HOME_URL: `${targetBaseUrl}/?lang=ru`,
+  HOME_EN_URL: `${targetBaseUrl}/?lang=en`,
+  HOME_DE_URL: `${targetBaseUrl}/?lang=de`,
+  API_HEALTH_URL: `${targetApiUrl}/api/health`,
+  PREVIEW_URL: `${targetApiUrl}/api/og/preview?lang=ru`,
+  PREVIEW_IMAGE_URL: `${targetBaseUrl}/baxic-logo-card.jpg`,
+  ...(testEmail ? { TEST_EMAIL: testEmail } : {}),
+  ...(testPassword ? { TEST_PASSWORD: testPassword } : {}),
 };
 let environment = environments.find((item) => item.name === environmentName);
 
