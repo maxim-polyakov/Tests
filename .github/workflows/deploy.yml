@@ -11,6 +11,7 @@ on:
       - gallery-tests/**
       - ecommerce-tests/**
       - businesscard-tests/**
+      - canban-tests/**
       - scripts/**
       - .github/workflows/deploy.yml
   workflow_dispatch:
@@ -55,7 +56,7 @@ jobs:
           set -euo pipefail
           test -n "$DEPLOY_ENV" || { echo 'DEPLOY_ENV secret is empty'; exit 1; }
           printf '%s\n' "$DEPLOY_ENV" > .env
-          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s misa-tests gallery-tests ecommerce-tests businesscard-tests scripts
+          tar -czf wrighttest-deploy.tar.gz compose.yaml .env e2e k8s misa-tests gallery-tests ecommerce-tests businesscard-tests canban-tests scripts
 
       - name: Upload deployment files
         env:
@@ -110,15 +111,20 @@ jobs:
              kubectl -n wrighttest create configmap wrighttest-businesscard-tests \
                --from-file=businesscard-tests \
                --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest create configmap wrighttest-canban-tests \
+               --from-file=canban-tests \
+               --dry-run=client -o yaml | kubectl apply -f -
              kubectl -n wrighttest delete job test-importer --ignore-not-found
              kubectl -n wrighttest delete job misagallery-test-importer --ignore-not-found
              kubectl -n wrighttest delete job ecommerce-test-importer --ignore-not-found
              kubectl -n wrighttest delete job businesscard-test-importer --ignore-not-found
+             kubectl -n wrighttest delete job canban-test-importer --ignore-not-found
              kubectl apply -f k8s/resources.yaml
              kubectl apply -f k8s/e2e-cronjob.yaml
              kubectl apply -f k8s/gallery-e2e-cronjob.yaml
              kubectl apply -f k8s/ecommerce-e2e-cronjob.yaml
              kubectl apply -f k8s/businesscard-e2e-cronjob.yaml
+             kubectl apply -f k8s/canban-e2e-cronjob.yaml
              stdbuf -oL -eL bash '$DEPLOY_PATH/scripts/compose-k3s-sync.sh' \
                --compose-file compose.yaml \
                --project-dir '$DEPLOY_PATH' \
@@ -156,6 +162,11 @@ jobs:
              if ! kubectl -n wrighttest wait --for=condition=complete job/businesscard-test-importer --timeout=300s; then
                kubectl -n wrighttest describe job/businesscard-test-importer || true
                kubectl -n wrighttest logs job/businesscard-test-importer --all-containers=true --tail=-1 || true
+               exit 1
+             fi
+             if ! kubectl -n wrighttest wait --for=condition=complete job/canban-test-importer --timeout=300s; then
+               kubectl -n wrighttest describe job/canban-test-importer || true
+               kubectl -n wrighttest logs job/canban-test-importer --all-containers=true --tail=-1 || true
                exit 1
              fi
              kubectl -n wrighttest get pods -o wide"

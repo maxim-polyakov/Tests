@@ -17,6 +17,7 @@ const loginPath = process.env.TEST_LOGIN_PATH ?? '/login';
 const registrationPath = process.env.TEST_REGISTRATION_PATH ?? '/registration';
 const forgotPasswordPath = process.env.TEST_FORGOT_PASSWORD_PATH ?? '/forgot-password';
 const shopPath = process.env.TEST_SHOP_PATH ?? '/shop';
+const previewImagePath = process.env.TEST_PREVIEW_IMAGE_PATH ?? '/baxic-logo-card.jpg';
 
 if (!email || !password) {
   throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD are required');
@@ -115,7 +116,7 @@ const environmentVariables = {
   HOME_DE_URL: `${targetBaseUrl}/?lang=de`,
   API_HEALTH_URL: `${targetApiUrl}/api/health`,
   PREVIEW_URL: `${targetApiUrl}/api/og/preview?lang=ru`,
-  PREVIEW_IMAGE_URL: `${targetBaseUrl}/baxic-logo-card.jpg`,
+  PREVIEW_IMAGE_URL: `${targetBaseUrl}${previewImagePath}`,
   ...(testEmail ? { TEST_EMAIL: testEmail } : {}),
   ...(testPassword ? { TEST_PASSWORD: testPassword } : {}),
 };
