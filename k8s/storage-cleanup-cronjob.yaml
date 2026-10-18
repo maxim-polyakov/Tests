@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wrighttest-storage-cleanup
+  namespace: wrighttest
+spec:
+  schedule: "17 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 900
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: wrighttest-storage-cleanup
+        spec:
+          restartPolicy: Never
+          nodeSelector:
+            baxic.ru/workload-pool: main
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: novnc
+                  topologyKey: kubernetes.io/hostname
+          tolerations:
+            - key: node.kubernetes.io/not-ready
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+            - key: node.kubernetes.io/unreachable
+              operator: Exists
+              effect: NoExecute
+              tolerationSeconds: 120
+          containers:
+            - name: cleanup
+              image: busybox:1.37
+              command:
+                - sh
+                - -ec
+                - |
+                  echo "Storage before cleanup:"
+                  df -h /data
+
+                  for directory in \
+                    /data/screenshots \
+                    /data/traces \
+                    /data/e2e/*-test-results \
+                    /data/e2e/*-playwright-report
+                  do
+                    [ -d "$directory" ] || continue
+                    find "$directory" -type f -mmin +1440 -delete
+                    find "$directory" -mindepth 1 -type d -empty -delete
+                  done
+
+                  echo "Storage after cleanup:"
+                  df -h /data
+              volumeMounts:
+                - name: wrighttest-data
+                  mountPath: /data
+          volumes:
+            - name: wrighttest-data
+              persistentVolumeClaim:
+                claimName: wrighttest-data

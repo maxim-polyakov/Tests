@@ -125,6 +125,7 @@ jobs:
              kubectl apply -f k8s/ecommerce-e2e-cronjob.yaml
              kubectl apply -f k8s/businesscard-e2e-cronjob.yaml
              kubectl apply -f k8s/canban-e2e-cronjob.yaml
+             kubectl apply -f k8s/storage-cleanup-cronjob.yaml
              stdbuf -oL -eL bash '$DEPLOY_PATH/scripts/compose-k3s-sync.sh' \
                --compose-file compose.yaml \
                --project-dir '$DEPLOY_PATH' \
