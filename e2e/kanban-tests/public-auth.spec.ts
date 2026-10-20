@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('Canban public authentication', () => {
+test.describe('Kanban public authentication', () => {
   test('login, registration and password reset links preserve language', async ({ page }) => {
     await page.goto('/login?lang=ru');
 
@@ -21,7 +21,7 @@ test.describe('Canban public authentication', () => {
 
   test('invalid credentials stay unauthenticated', async ({ page }) => {
     await page.goto('/login?lang=ru');
-    await page.locator('input[type="email"]').fill('missing-canban-user@example.invalid');
+    await page.locator('input[type="email"]').fill('missing-kanban-user@example.invalid');
     await page.locator('input[type="password"]').fill('wrong-password');
     await page.locator('button[type="submit"]').click();
 

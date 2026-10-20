@@ -1,7 +1,7 @@
 // @ts-nocheck -- imported into WrightTest; dependencies live in its backend image.
 import { expect, test } from '@playwright/test';
 
-test('страница входа Canban доступна', async ({ page }) => {
+test('страница входа Kanban доступна', async ({ page }) => {
   await page.goto(process.env.LOGIN_URL ?? '');
 
   await expect(page).toHaveTitle('Канбан — Квесты и уровни');
@@ -13,9 +13,9 @@ test('страница входа Canban доступна', async ({ page }) => 
   await expect(page.locator('a[href="/register?lang=ru"]')).toBeVisible();
 });
 
-test('неверные данные не создают сессию Canban', async ({ page }) => {
+test('неверные данные не создают сессию Kanban', async ({ page }) => {
   await page.goto(process.env.LOGIN_URL ?? '');
-  await page.locator('input[type="email"]').fill('missing-canban-user@example.invalid');
+  await page.locator('input[type="email"]').fill('missing-kanban-user@example.invalid');
   await page.locator('input[type="password"]').fill('wrong-password');
   await page.locator('button[type="submit"]').click();
 

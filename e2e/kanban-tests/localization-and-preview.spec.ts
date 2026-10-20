@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('Canban localization and social preview', () => {
+test.describe('Kanban localization and social preview', () => {
   test('language selector exposes the Misa language pack and updates URL', async ({ page }) => {
     await page.goto('/login?lang=ru');
 
@@ -29,7 +29,7 @@ test.describe('Canban localization and social preview', () => {
   });
 
   test('Discord preview is localized and serves the large Kanban logo', async ({ request }) => {
-    const preview = await request.get('/?lang=en&test=canban-preview', {
+    const preview = await request.get('/?lang=en&test=kanban-preview', {
       headers: { 'user-agent': 'Discordbot/2.0' },
     });
     expect(preview.ok(), await preview.text()).toBeTruthy();
@@ -38,7 +38,7 @@ test.describe('Canban localization and social preview', () => {
     expect(html).toContain('<meta property="og:title" content="Kanban — Quests and levels"');
     expect(html).toContain('twitter:card" content="summary_large_image"');
     expect(html).toContain('og:image:width" content="1024"');
-    expect(html).toContain('https://canban.baxic.ru/canban-preview.png');
+    expect(html).toContain('https://kanban.baxic.ru/canban-preview.png');
 
     const image = await request.get('/canban-preview.png', {
       headers: { 'user-agent': 'Discordbot/2.0' },

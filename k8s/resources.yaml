@@ -839,21 +839,21 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: canban-test-importer
+  name: kanban-test-importer
   namespace: wrighttest
   labels:
-    app: canban-test-importer
+    app: kanban-test-importer
     compose.project: wrighttest
-    compose.service: canban-test-importer
+    compose.service: kanban-test-importer
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 900
   template:
     metadata:
       labels:
-        app: canban-test-importer
+        app: kanban-test-importer
         compose.project: wrighttest
-        compose.service: canban-test-importer
+        compose.service: kanban-test-importer
     spec:
       restartPolicy: Never
       nodeSelector:
@@ -892,17 +892,17 @@ spec:
             - name: WRIGHTTEST_API_URL
               value: http://backend:3000
             - name: WRIGHTTEST_PROJECT
-              value: Canban
+              value: Kanban
             - name: TEST_BASE_URL
-              value: https://canban.baxic.ru
+              value: https://kanban.baxic.ru
             - name: TEST_API_URL
-              value: https://canbanapi.baxic.ru
+              value: https://kanbanapi.baxic.ru
             - name: TEST_SCHEDULE_CRON
               value: "20 * * * *"
             - name: TEST_ENVIRONMENT
-              value: Canban Production
+              value: Kanban Production
             - name: TESTS_DIR
-              value: /canban-tests
+              value: /kanban-tests
             - name: TEST_LOGIN_PATH
               value: /login
             - name: TEST_REGISTRATION_PATH
@@ -926,13 +926,13 @@ spec:
               mountPath: /import-tests.mjs
               subPath: import-tests.mjs
               readOnly: true
-            - name: canban-tests
-              mountPath: /canban-tests
+            - name: kanban-tests
+              mountPath: /kanban-tests
               readOnly: true
       volumes:
         - name: importer-script
           configMap:
             name: wrighttest-importer-script
-        - name: canban-tests
+        - name: kanban-tests
           configMap:
-            name: wrighttest-canban-tests
+            name: wrighttest-kanban-tests

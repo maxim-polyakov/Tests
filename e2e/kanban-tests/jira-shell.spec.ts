@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test.describe('Canban Jira-like shell', () => {
+test.describe('Kanban Jira-like shell', () => {
   test('public login stays usable on a narrow mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/login?lang=ru');

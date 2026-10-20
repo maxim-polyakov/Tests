@@ -1,8 +1,8 @@
 import { expect, request, test } from '@playwright/test';
 
-const apiBaseUrl = process.env.CANBAN_API_URL ?? 'https://canbanapi.baxic.ru';
+const apiBaseUrl = process.env.KANBAN_API_URL ?? 'https://kanbanapi.baxic.ru';
 
-test.describe('Canban API', () => {
+test.describe('Kanban API', () => {
   test('authorization boundary and invalid login work', async () => {
     const api = await request.newContext({ baseURL: apiBaseUrl });
 
@@ -11,7 +11,7 @@ test.describe('Canban API', () => {
 
     const invalidLogin = await api.post('/api/auth/login', {
       data: {
-        email: 'missing-canban-user@example.invalid',
+        email: 'missing-kanban-user@example.invalid',
         password: 'wrong-password',
       },
     });

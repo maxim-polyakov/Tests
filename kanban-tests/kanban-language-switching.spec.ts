@@ -1,7 +1,7 @@
 // @ts-nocheck -- imported into WrightTest; dependencies live in its backend image.
 import { expect, test } from '@playwright/test';
 
-test('Canban сохраняет выбранный язык в URL', async ({ page }) => {
+test('Kanban сохраняет выбранный язык в URL', async ({ page }) => {
   await page.goto(process.env.LOGIN_URL ?? '');
 
   await expect(page.locator('.language-selector select')).toHaveValue('ru');
@@ -18,7 +18,7 @@ test('Canban сохраняет выбранный язык в URL', async ({ pa
   await expect(page.locator('.auth-form h1')).toHaveText('Sign in');
 });
 
-test('Canban включает RTL для арабского языка', async ({ page }) => {
+test('Kanban включает RTL для арабского языка', async ({ page }) => {
   await page.goto(process.env.LOGIN_URL ?? '');
   await page.locator('.language-selector select').selectOption('ar');
 

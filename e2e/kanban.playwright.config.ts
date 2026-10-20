@@ -1,18 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './canban-tests',
+  testDir: './kanban-tests',
   fullyParallel: false,
   workers: 1,
   retries: 1,
   timeout: 90_000,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'canban-playwright-report', open: 'never' }],
+    ['html', { outputFolder: 'kanban-playwright-report', open: 'never' }],
     ['./wrighttest-reporter.ts'],
   ],
   use: {
-    baseURL: process.env.CANBAN_BASE_URL ?? 'https://canban.baxic.ru',
+    baseURL: process.env.KANBAN_BASE_URL ?? 'https://kanban.baxic.ru',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -24,5 +24,5 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  outputDir: 'canban-test-results',
+  outputDir: 'kanban-test-results',
 });

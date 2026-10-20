@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: canban-e2e
+  name: kanban-e2e
   namespace: wrighttest
   labels:
-    app: canban-e2e
+    app: kanban-e2e
     compose.project: wrighttest
 spec:
   schedule: "35 * * * *"
@@ -18,7 +18,7 @@ spec:
       template:
         metadata:
           labels:
-            app: canban-e2e
+            app: kanban-e2e
         spec:
           restartPolicy: Never
           nodeSelector:
@@ -47,25 +47,25 @@ spec:
               command:
                 - /bin/sh
                 - -lc
-                - npm ci --ignore-scripts && npx playwright test --config=canban.playwright.config.ts
+                - npm ci --ignore-scripts && npx playwright test --config=kanban.playwright.config.ts
               env:
                 - name: CI
                   value: "true"
-                - name: CANBAN_BASE_URL
-                  value: https://canban.baxic.ru
-                - name: CANBAN_API_URL
-                  value: https://canbanapi.baxic.ru
+                - name: KANBAN_BASE_URL
+                  value: https://kanban.baxic.ru
+                - name: KANBAN_API_URL
+                  value: https://kanbanapi.baxic.ru
                 - name: E2E_BASE_URL
-                  value: https://canban.baxic.ru
+                  value: https://kanban.baxic.ru
                 - name: DATABASE_URL
                   valueFrom:
                     secretKeyRef:
                       name: wrighttest-env
                       key: DATABASE_URL
                 - name: WRIGHTTEST_PROJECT
-                  value: Canban
+                  value: Kanban
                 - name: TEST_ENVIRONMENT
-                  value: Canban Production
+                  value: Kanban Production
               resources:
                 requests:
                   cpu: 250m
