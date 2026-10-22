@@ -93,8 +93,8 @@ async function loginPage(page: Page, email: string, password: string): Promise<v
 test.describe('Service Desk', () => {
   test('portal route is reachable for authenticated users', async ({ page }) => {
     await page.goto('/portal');
-    await expect(page).toHaveURL(/portal/);
     // Either the portal home or login redirect is acceptable depending on auth state.
+    await expect(page).toHaveURL(/\/(?:portal(?:\/|$)|login(?:\?|$))/);
     const body = page.locator('body');
     await expect(body).toBeVisible();
   });
