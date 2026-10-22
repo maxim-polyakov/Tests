@@ -14,7 +14,7 @@ spec:
   jobTemplate:
     spec:
       backoffLimit: 0
-      activeDeadlineSeconds: 600
+      activeDeadlineSeconds: 2400
       template:
         metadata:
           labels:
@@ -47,7 +47,7 @@ spec:
               command:
                 - /bin/sh
                 - -lc
-                - npm ci --ignore-scripts && npx playwright test --config=gallery.playwright.config.ts
+                - flock -w 1800 /work/.wrighttest-e2e.lock sh -c 'npm ci --ignore-scripts && npx playwright test --config=gallery.playwright.config.ts'
               env:
                 - name: CI
                   value: "true"
