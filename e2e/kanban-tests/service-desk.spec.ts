@@ -33,9 +33,10 @@ function gateFullFlow(): void {
     'Set agent and viewer KANBAN_E2E credentials',
   );
   test.skip(!webUrl || !apiUrl, 'Set KANBAN_E2E_BASE_URL and KANBAN_E2E_API_URL');
+  const productionRun = isProductionUrl(webUrl) || isProductionUrl(apiUrl);
   test.skip(
-    isProductionUrl(webUrl) || isProductionUrl(apiUrl),
-    'Destructive Service Desk E2E must never run against production',
+    productionRun && process.env.KANBAN_ALLOW_PRODUCTION_DESTRUCTIVE_E2E !== '1',
+    'Production requires the explicit one-off KANBAN_ALLOW_PRODUCTION_DESTRUCTIVE_E2E=1 flag',
   );
 }
 
