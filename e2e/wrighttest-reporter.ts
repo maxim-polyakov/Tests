@@ -52,6 +52,8 @@ export default class WrightTestReporter implements Reporter {
     });
 
     try {
+      const publishableResults = [...this.finalResults.values()]
+        .filter(({ result }) => result.status !== 'skipped');
       const projectResult = await pool.query<{ id: string }>(
         'SELECT "id" FROM "Project" WHERE "name" = $1 ORDER BY "createdAt" LIMIT 1',
         [projectName],
@@ -65,7 +67,7 @@ export default class WrightTestReporter implements Reporter {
       );
       const environmentId = environmentResult.rows[0]?.id ?? null;
 
-      for (const { test, result } of this.finalResults.values()) {
+      for (const { test, result } of publishableResults) {
         const fullTitle = test.titlePath().filter(Boolean).join(' › ');
         const name = `E2E: ${fullTitle}`.slice(0, 200);
         const testResult = await pool.query<{ id: string }>(
@@ -106,7 +108,7 @@ export default class WrightTestReporter implements Reporter {
         );
       }
 
-      console.log(`Published ${this.finalResults.size} Playwright result(s) to WrightTest`);
+      console.log(`Published ${publishableResults.length} Playwright result(s) to WrightTest`);
     } finally {
       await pool.end();
     }
