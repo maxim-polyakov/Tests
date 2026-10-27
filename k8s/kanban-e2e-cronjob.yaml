@@ -7,7 +7,7 @@ metadata:
     app: kanban-e2e
     compose.project: wrighttest
 spec:
-  schedule: "35 * * * *"
+  schedule: "15 1-23/3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 3

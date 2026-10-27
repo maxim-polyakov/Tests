@@ -7,7 +7,7 @@ metadata:
     app: businesscard-e2e
     compose.project: wrighttest
 spec:
-  schedule: "25 * * * *"
+  schedule: "5 */3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 3
