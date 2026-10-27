@@ -8,6 +8,7 @@ metadata:
     compose.project: wrighttest
 spec:
   schedule: "25 2-23/3 * * *"
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 3
