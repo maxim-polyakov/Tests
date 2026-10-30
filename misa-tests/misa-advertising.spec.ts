@@ -17,7 +17,6 @@ test('Misa показывает рекламу для запросов на ра
 
   await page.locator('.message-textarea').fill('Посоветуй смартфон с хорошей камерой, который можно купить в этом году');
   await page.getByTitle('Отправить сообщение').click();
-  await page.waitForTimeout(20_000);
   await expect(page.locator('.user-message').last()).toContainText('смартфон');
   await expect(page.locator('.misa-message').nth(0)).toBeVisible();
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad')).toBeVisible();
@@ -26,7 +25,6 @@ test('Misa показывает рекламу для запросов на ра
 
   await page.locator('.message-textarea').fill('Подбери отель для отдыха у моря и расскажи, на что обратить внимание');
   await page.getByTitle('Отправить сообщение').click();
-  await page.waitForTimeout(20_000);
   await expect(page.locator('.user-message').last()).toContainText('отель');
   await expect(page.locator('.misa-message').nth(1)).toBeVisible();
   await expect(page.locator('.misa-message').nth(1).locator('.message-ad')).toBeVisible();
@@ -35,7 +33,6 @@ test('Misa показывает рекламу для запросов на ра
 
   await page.locator('.message-textarea').fill('Помоги выбрать онлайн-курс по программированию для начинающего');
   await page.getByTitle('Отправить сообщение').click();
-  await page.waitForTimeout(20_000);
   await expect(page.locator('.user-message').last()).toContainText('онлайн-курс');
   await expect(page.locator('.misa-message').nth(2)).toBeVisible();
   await expect(page.locator('.misa-message').nth(2).locator('.message-ad')).toBeVisible();

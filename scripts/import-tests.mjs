@@ -70,6 +70,18 @@ async function findSpecs(directory) {
   return files.flat().filter((file) => file.endsWith('.spec.ts'));
 }
 
+function prepareImportedSteps(name, steps) {
+  if (name !== 'misa-advertising.spec.ts') {
+    return steps;
+  }
+
+  return steps.map((step) => (
+    step.selector?.includes(".misa-message")
+      ? { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } }
+      : step
+  ));
+}
+
 const login = await request('/auth/login', {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
@@ -199,6 +211,16 @@ for (const [index, file] of specs.entries()) {
     });
     importedTest = imported.test;
     console.log(`Imported test: ${name}`);
+  }
+
+  const preparedSteps = prepareImportedSteps(name, importedTest.steps);
+  if (preparedSteps !== importedTest.steps) {
+    importedTest = await request(`/tests/${importedTest.id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ steps: preparedSteps }),
+    });
+    console.log(`Applied extended response timeout: ${name}`);
   }
 
   await request(`/tests/${importedTest.id}`, {
