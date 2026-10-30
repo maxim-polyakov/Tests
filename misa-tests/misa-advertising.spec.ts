@@ -13,41 +13,47 @@ test('Misa показывает рекламу для запросов на ра
   await expect(page.locator('.chat-container')).toBeVisible();
 
   await page.locator('.new-chat-button').click();
-  const textarea = page.locator('.message-textarea');
-  const sendButton = page.getByTitle('Отправить сообщение');
-  await expect(textarea).toBeVisible();
-  await expect(textarea).toBeEnabled({ timeout: 30_000 });
+  await expect(page.locator('.message-textarea')).toBeVisible();
 
-  await textarea.fill('Посоветуй смартфон с хорошей камерой, который можно купить в этом году');
-  await sendButton.click();
+  await page
+    .locator('.message-textarea')
+    .fill('Посоветуй смартфон с хорошей камерой, который можно купить в этом году');
+  await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('смартфон');
-  const smartphoneAnswer = page.locator('.misa-message').nth(0);
-  await expect(smartphoneAnswer).toBeVisible({ timeout: 90_000 });
-  await expect(smartphoneAnswer.locator('.message-ad')).toBeVisible({
+  await expect(page.locator('.misa-message').nth(0)).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad')).toBeVisible({
     timeout: 90_000,
   });
-  await expect(smartphoneAnswer.locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(smartphoneAnswer.locator('.message-ad-body')).toBeVisible();
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad-label')).toHaveText(
+    'Реклама',
+  );
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad-body')).toBeVisible();
 
-  await textarea.fill('Подбери отель для отдыха у моря и расскажи, на что обратить внимание');
-  await sendButton.click();
+  await page
+    .locator('.message-textarea')
+    .fill('Подбери отель для отдыха у моря и расскажи, на что обратить внимание');
+  await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('отель');
-  const hotelAnswer = page.locator('.misa-message').nth(1);
-  await expect(hotelAnswer).toBeVisible({ timeout: 90_000 });
-  await expect(hotelAnswer.locator('.message-ad')).toBeVisible({
+  await expect(page.locator('.misa-message').nth(1)).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator('.misa-message').nth(1).locator('.message-ad')).toBeVisible({
     timeout: 90_000,
   });
-  await expect(hotelAnswer.locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(hotelAnswer.locator('.message-ad-body')).toBeVisible();
+  await expect(page.locator('.misa-message').nth(1).locator('.message-ad-label')).toHaveText(
+    'Реклама',
+  );
+  await expect(page.locator('.misa-message').nth(1).locator('.message-ad-body')).toBeVisible();
 
-  await textarea.fill('Помоги выбрать онлайн-курс по программированию для начинающего');
-  await sendButton.click();
+  await page
+    .locator('.message-textarea')
+    .fill('Помоги выбрать онлайн-курс по программированию для начинающего');
+  await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('онлайн-курс');
-  const courseAnswer = page.locator('.misa-message').nth(2);
-  await expect(courseAnswer).toBeVisible({ timeout: 90_000 });
-  await expect(courseAnswer.locator('.message-ad')).toBeVisible({
+  await expect(page.locator('.misa-message').nth(2)).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator('.misa-message').nth(2).locator('.message-ad')).toBeVisible({
     timeout: 90_000,
   });
-  await expect(courseAnswer.locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(courseAnswer.locator('.message-ad-body')).toBeVisible();
+  await expect(page.locator('.misa-message').nth(2).locator('.message-ad-label')).toHaveText(
+    'Реклама',
+  );
+  await expect(page.locator('.misa-message').nth(2).locator('.message-ad-body')).toBeVisible();
 });
