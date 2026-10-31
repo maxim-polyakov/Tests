@@ -20,4 +20,6 @@ test('Misa показывает рекламу для запроса об авт
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad')).toBeVisible();
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad-label')).toHaveText('Реклама');
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad-body')).toBeVisible();
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad-body a').first()).toBeVisible();
+  await page.locator('.misa-message').nth(0).locator('.message-ad-body a').first().click();
 });
