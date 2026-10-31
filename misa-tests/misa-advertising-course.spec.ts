@@ -13,7 +13,7 @@ test('Misa показывает рекламу для запроса об онл
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-  await page.locator('.message-textarea').fill('Помоги выбрать онлайн-курс по программированию для начинающего');
+  await page.locator('.message-textarea').fill('Помоги выбрать онлайн-курс по программированию для начинающего. Ответь кратко, одним предложением.');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('онлайн-курс');
   await expect(page.locator('.misa-message').nth(0)).toBeVisible();

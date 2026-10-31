@@ -13,7 +13,7 @@ test('Misa показывает рекламу для запроса об оте
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-  await page.locator('.message-textarea').fill('Подбери отель для отдыха у моря и расскажи, на что обратить внимание');
+  await page.locator('.message-textarea').fill('Подбери отель для отдыха у моря. Ответь кратко, одним предложением.');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('отель');
   await expect(page.locator('.misa-message').nth(0)).toBeVisible();

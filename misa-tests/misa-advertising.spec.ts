@@ -15,7 +15,7 @@ test('Misa показывает рекламу для запроса о смар
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
 
-  await page.locator('.message-textarea').fill('Посоветуй смартфон с хорошей камерой, который можно купить в этом году');
+  await page.locator('.message-textarea').fill('Посоветуй смартфон с хорошей камерой, который можно купить в этом году. Ответь кратко, одним предложением.');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('смартфон');
   await expect(page.locator('.misa-message').nth(0)).toBeVisible();

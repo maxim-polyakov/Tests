@@ -21,7 +21,7 @@ test('complete chat lifecycle and message actions', async ({ context, page }) =>
   await login(page);
 
   const marker = Date.now();
-  const prompt = `E2E smoke check ${marker}: reply with OK`;
+  const prompt = `E2E smoke check ${marker}: reply only OK, no explanation`;
   const renamedTitle = `E2E ${marker}`;
 
   await expect(page.locator('.reconnect-container')).toHaveCount(0, { timeout: 30_000 });
