@@ -175,9 +175,14 @@ for (const importedTest of existing) {
 }
 
 let hourlyScheduleIndex = 0;
+let advertisingScheduleIndex = 0;
 for (const file of specs) {
   const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
   const isAdvertisingTest = name.startsWith('misa-advertising');
+  const advertisingMinute = advertisingScheduleIndex * 3;
+  if (isAdvertisingTest) {
+    advertisingScheduleIndex += 1;
+  }
   let importedTest = testsByName.get(name);
   const code = await readFile(file, 'utf8');
 
@@ -234,7 +239,9 @@ for (const file of specs) {
   const scheduleName = `Hourly: ${name}`.slice(0, 100);
   const schedulePayload = {
     name: scheduleName,
-    cron: isAdvertisingTest ? '*/15 * * * *' : staggeredCron(hourlyScheduleIndex++),
+    cron: isAdvertisingTest
+      ? `${advertisingMinute}-59/15 * * * *`
+      : staggeredCron(hourlyScheduleIndex++),
     testId: importedTest.id,
     environmentId: environment.id,
     enabled: true,
