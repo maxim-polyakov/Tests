@@ -108,6 +108,7 @@ spec:
     spec:
       nodeSelector:
         baxic.ru/workload-pool: main
+        kubernetes.io/hostname: worker-146
       tolerations:
         - key: node.kubernetes.io/not-ready
           operator: Exists
