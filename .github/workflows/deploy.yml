@@ -98,6 +98,9 @@ jobs:
              kubectl -n wrighttest create configmap wrighttest-importer-script \
                --from-file=import-tests.mjs=scripts/import-tests.mjs \
                --dry-run=client -o yaml | kubectl apply -f -
+             kubectl -n wrighttest create configmap wrighttest-popup-screenshot \
+               --from-file=wrighttest-popup-screenshot.cjs=scripts/wrighttest-popup-screenshot.cjs \
+               --dry-run=client -o yaml | kubectl apply -f -
              kubectl -n wrighttest create configmap wrighttest-misa-tests \
                --from-file=misa-tests \
                --dry-run=client -o yaml | kubectl apply -f -
