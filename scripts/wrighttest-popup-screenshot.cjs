@@ -15,11 +15,49 @@ chromium.launch = async (...launchArguments) => {
       const originalScreenshot = page.screenshot.bind(page);
 
       page.screenshot = async (options) => {
-        const pages = context.pages();
+        let pages = context.pages();
+        if (pages.length === 1) {
+          const popupExpected = await page.evaluate(() => (
+            document.activeElement instanceof HTMLAnchorElement
+            && document.activeElement.target === '_blank'
+          )).catch(() => false);
+
+          if (popupExpected) {
+            pages = context.pages();
+            if (pages.length === 1) {
+              await context.waitForEvent('page', { timeout: 5_000 }).catch(() => {});
+              pages = context.pages();
+            }
+          }
+        }
         const newestPage = pages.at(-1);
 
         if (newestPage && newestPage !== page && !newestPage.isClosed()) {
-          await newestPage.waitForLoadState('domcontentloaded', { timeout: 15_000 }).catch(() => {});
+          await newestPage.waitForURL(
+            (url) => url.href !== 'about:blank',
+            { waitUntil: 'domcontentloaded', timeout: 30_000 },
+          );
+          await newestPage.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+          await newestPage.evaluate(() => {
+            const badge = document.createElement('div');
+            badge.textContent = `Opened URL: ${window.location.href}`;
+            badge.style.cssText = [
+              'position:fixed',
+              'top:8px',
+              'left:8px',
+              'z-index:2147483647',
+              'max-width:calc(100vw - 16px)',
+              'padding:8px 12px',
+              'border:2px solid #111827',
+              'border-radius:6px',
+              'background:#ffffff',
+              'color:#111827',
+              'font:14px/1.4 monospace',
+              'overflow-wrap:anywhere',
+              'box-shadow:0 2px 8px rgba(0,0,0,.25)',
+            ].join(';');
+            document.documentElement.appendChild(badge);
+          });
           return newestPage.screenshot(options);
         }
 
