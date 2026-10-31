@@ -71,7 +71,7 @@ async function findSpecs(directory) {
 }
 
 function prepareImportedSteps(name, steps) {
-  if (name !== 'misa-advertising.spec.ts') {
+  if (!name.startsWith('misa-advertising')) {
     return steps;
   }
 
@@ -174,8 +174,10 @@ for (const importedTest of existing) {
   }
 }
 
-for (const [index, file] of specs.entries()) {
+let hourlyScheduleIndex = 0;
+for (const file of specs) {
   const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
+  const isAdvertisingTest = name.startsWith('misa-advertising');
   let importedTest = testsByName.get(name);
   const code = await readFile(file, 'utf8');
 
@@ -232,7 +234,7 @@ for (const [index, file] of specs.entries()) {
   const scheduleName = `Hourly: ${name}`.slice(0, 100);
   const schedulePayload = {
     name: scheduleName,
-    cron: staggeredCron(index),
+    cron: isAdvertisingTest ? '*/15 * * * *' : staggeredCron(hourlyScheduleIndex++),
     testId: importedTest.id,
     environmentId: environment.id,
     enabled: true,

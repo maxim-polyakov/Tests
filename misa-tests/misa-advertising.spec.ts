@@ -1,8 +1,8 @@
 // @ts-nocheck -- imported into WrightTest; dependencies live in its backend image.
 import { expect, test } from '@playwright/test';
 
-test('Misa показывает рекламу для запросов на разные темы', async ({ page }) => {
-  test.setTimeout(360_000);
+test('Misa показывает рекламу для запроса о смартфоне', async ({ page }) => {
+  test.setTimeout(120_000);
 
   await page.goto(process.env.LOGIN_URL ?? '');
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
@@ -22,36 +22,4 @@ test('Misa показывает рекламу для запросов на ра
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad')).toBeVisible();
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad-label')).toHaveText('Реклама');
   await expect(page.locator('.misa-message').nth(0).locator('.message-ad-body')).toBeVisible();
-
-  await page.locator('.message-textarea').fill('Подбери отель для отдыха у моря и расскажи, на что обратить внимание');
-  await page.getByTitle('Отправить сообщение').click();
-  await expect(page.locator('.user-message').last()).toContainText('отель');
-  await expect(page.locator('.misa-message').nth(1)).toBeVisible();
-  await expect(page.locator('.misa-message').nth(1).locator('.message-ad')).toBeVisible();
-  await expect(page.locator('.misa-message').nth(1).locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(page.locator('.misa-message').nth(1).locator('.message-ad-body')).toBeVisible();
-
-  await page.locator('.message-textarea').fill('Помоги выбрать онлайн-курс по программированию для начинающего');
-  await page.getByTitle('Отправить сообщение').click();
-  await expect(page.locator('.user-message').last()).toContainText('онлайн-курс');
-  await expect(page.locator('.misa-message').nth(2)).toBeVisible();
-  await expect(page.locator('.misa-message').nth(2).locator('.message-ad')).toBeVisible();
-  await expect(page.locator('.misa-message').nth(2).locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(page.locator('.misa-message').nth(2).locator('.message-ad-body')).toBeVisible();
-
-  await page.locator('.message-textarea').fill('Помоги выбрать семейный автомобиль и сравнить варианты покупки в кредит');
-  await page.getByTitle('Отправить сообщение').click();
-  await expect(page.locator('.user-message').last()).toContainText('автомобиль');
-  await expect(page.locator('.misa-message').nth(3)).toBeVisible();
-  await expect(page.locator('.misa-message').nth(3).locator('.message-ad')).toBeVisible();
-  await expect(page.locator('.misa-message').nth(3).locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(page.locator('.misa-message').nth(3).locator('.message-ad-body')).toBeVisible();
-
-  await page.locator('.message-textarea').fill('Посоветуй сервис доставки готовой еды на неделю');
-  await page.getByTitle('Отправить сообщение').click();
-  await expect(page.locator('.user-message').last()).toContainText('доставки');
-  await expect(page.locator('.misa-message').nth(4)).toBeVisible();
-  await expect(page.locator('.misa-message').nth(4).locator('.message-ad')).toBeVisible();
-  await expect(page.locator('.misa-message').nth(4).locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(page.locator('.misa-message').nth(4).locator('.message-ad-body')).toBeVisible();
 });
