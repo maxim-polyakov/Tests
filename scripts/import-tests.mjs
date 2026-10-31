@@ -244,7 +244,7 @@ for (const file of specs) {
       : staggeredCron(hourlyScheduleIndex++),
     testId: importedTest.id,
     environmentId: environment.id,
-    enabled: true,
+    enabled: false,
   };
   const existingSchedule = schedulesByName.get(scheduleName);
 
