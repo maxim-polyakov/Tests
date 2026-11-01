@@ -50,6 +50,12 @@ apply_failover_patches() {
 import json, os, sys
 d = json.load(sys.stdin)
 pod = d["spec"]["template"]["spec"]
+disable_resource_requests = (
+    d.get("metadata", {}).get("annotations", {}).get(
+        "baxic.ru/disable-resource-requests"
+    )
+    == "true"
+)
 selector = dict(pod.get("nodeSelector") or {})
 selector.pop("kubernetes.io/hostname", None)
 selector["baxic.ru/workload-pool"] = "main"
@@ -69,6 +75,9 @@ for key in ("node.kubernetes.io/not-ready", "node.kubernetes.io/unreachable"):
     })
 containers = []
 for container in pod.get("containers") or []:
+    if disable_resource_requests:
+        containers.append({"name": container["name"], "resources": None})
+        continue
     requests = dict((container.get("resources") or {}).get("requests") or {})
     requests.setdefault("cpu", os.environ.get("COMPOSE_K3S_DEFAULT_CPU_REQUEST", "50m"))
     requests.setdefault("memory", os.environ.get("COMPOSE_K3S_DEFAULT_MEMORY_REQUEST", "128Mi"))

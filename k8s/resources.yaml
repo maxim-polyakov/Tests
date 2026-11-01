@@ -188,6 +188,8 @@ kind: Deployment
 metadata:
   name: backend
   namespace: wrighttest
+  annotations:
+    baxic.ru/disable-resource-requests: "true"
   labels:
     app: backend
     compose.project: wrighttest
