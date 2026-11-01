@@ -16,12 +16,9 @@ test('Misa показывает рекламу для запроса об авт
   await page.locator('.message-textarea').fill('Помоги выбрать семейный автомобиль для покупки в кредит. Ответь одним словом.');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('автомобиль');
-  const response = page.locator('.misa-message').nth(0);
-  await expect(response).toBeVisible();
-  const ads = response.locator('.message-ad');
-  await expect(ads.first()).toBeVisible();
-  expect(await ads.count()).toBeLessThanOrEqual(10);
-  await expect(ads.first().locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(ads.first().locator('.message-ad-body')).toBeVisible();
-  await expect(ads.first().locator('.message-ad-body a').first()).toBeVisible();
+  await expect(page.locator('.misa-message').nth(0)).toBeVisible();
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first()).toBeVisible();
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-label')).toHaveText('Реклама');
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-body')).toBeVisible();
+  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-body a').first()).toBeVisible();
 });

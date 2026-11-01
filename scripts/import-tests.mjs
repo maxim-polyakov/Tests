@@ -82,6 +82,20 @@ function prepareImportedSteps(name, steps) {
   ));
 }
 
+function validateImportedSteps(name, steps) {
+  if (!name.startsWith('misa-advertising')) {
+    return;
+  }
+
+  const selectors = steps.map((step) => step.selector ?? '');
+  if (!selectors.some((selector) => selector.includes('.misa-message'))
+      || !selectors.some((selector) => selector.includes('.message-ad'))) {
+    throw new Error(
+      `Advertising test ${name} was imported without Misa response and ad assertions`,
+    );
+  }
+}
+
 const login = await request('/auth/login', {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
@@ -220,6 +234,7 @@ for (const file of specs) {
     console.log(`Imported test: ${name}`);
   }
 
+  validateImportedSteps(name, importedTest.steps);
   const preparedSteps = prepareImportedSteps(name, importedTest.steps);
   if (preparedSteps !== importedTest.steps) {
     importedTest = await request(`/tests/${importedTest.id}`, {
