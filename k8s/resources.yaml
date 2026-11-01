@@ -309,8 +309,6 @@ spec:
             requests:
               cpu: 250m
               memory: 512Mi
-            limits:
-              memory: 2Gi
       volumes:
         - name: wrighttest-data
           persistentVolumeClaim:
