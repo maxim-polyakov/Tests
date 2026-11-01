@@ -270,6 +270,8 @@ spec:
               value: production
             - name: NODE_OPTIONS
               value: --require=/app/backend/wrighttest-popup-screenshot.cjs
+            - name: TEST_WORKER_CONCURRENCY
+              value: "1"
           ports:
             - name: backend
               containerPort: 3000
