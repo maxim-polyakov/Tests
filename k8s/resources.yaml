@@ -305,10 +305,6 @@ spec:
               mountPath: /app/backend/wrighttest-popup-screenshot.cjs
               subPath: wrighttest-popup-screenshot.cjs
               readOnly: true
-          resources:
-            requests:
-              cpu: 250m
-              memory: 512Mi
       volumes:
         - name: wrighttest-data
           persistentVolumeClaim:
