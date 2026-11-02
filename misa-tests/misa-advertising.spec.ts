@@ -17,5 +17,5 @@ test('Misa показывает рекламу для запроса о смар
   // WrightTest captures a screenshot after the response becomes visible.
   await page.locator('.message-textarea').fill('Купить смартфон. Ок.');
   await page.getByTitle('Отправить сообщение').click();
-  await expect(page.locator('.misa-message').first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator('.misa-message').first()).toBeVisible();
 });

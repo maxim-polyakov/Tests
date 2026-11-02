@@ -16,5 +16,5 @@ test('Misa показывает рекламу для запроса об авт
   await expect(page.locator('.message-textarea')).toBeVisible();
   await page.locator('.message-textarea').fill('Купить автомобиль. Ок.');
   await page.getByTitle('Отправить сообщение').click();
-  await expect(page.locator('.misa-message').first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator('.misa-message').first()).toBeVisible();
 });
