@@ -75,23 +75,22 @@ function prepareImportedSteps(name, steps) {
     return steps;
   }
 
-  // Only the first ad wait needs a long timeout. Extending every .misa-message
-  // assertion to 90s kept Chromium alive far longer on slow Gradius answers.
+  // Cap only the first ad wait. Long chained timeouts kept Chromium (~3Gi) alive.
   let adWaitPatched = false;
   return steps.map((step) => {
     const selector = step.selector ?? '';
     if (!adWaitPatched && selector.includes('.message-ad')) {
       adWaitPatched = true;
-      return { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } };
+      return { ...step, options: { ...(step.options ?? {}), timeout: 30_000 } };
     }
     return step;
   });
 }
 
 function advertisingCron(index) {
-  // One advertising vertical per 15-minute wall slot instead of all five on */15.
-  // Keeps a check every :00/:15/:30/:45, each scenario once per hour (+ :50 for the 5th).
-  const slots = [0, 15, 30, 45, 50];
+  // One advertising vertical per hour, after other hourlies (0-24), 2 minutes apart
+  // so they never overlap with each other under TEST_WORKER_CONCURRENCY.
+  const slots = [51, 53, 55, 57, 59];
   const minute = slots[index];
   if (minute === undefined) {
     throw new Error(`Advertising schedule index ${index} exceeds supported slots`);

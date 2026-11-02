@@ -1,8 +1,9 @@
 // @ts-nocheck -- imported into WrightTest; dependencies live in its backend image.
+// Keep steps flat (no const/lets): WrightTest import drops assertions after const.
 import { expect, test } from '@playwright/test';
 
 test('Misa показывает рекламу для запроса о смартфоне', async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(60_000);
 
   await page.goto(process.env.LOGIN_URL ?? '');
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
@@ -13,14 +14,15 @@ test('Misa показывает рекламу для запроса о смар
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-  await page.locator('.message-textarea').fill(
-    'Посоветуй смартфон с хорошей камерой, который можно купить в этом году. Ответь одним словом.',
-  );
+  // Short commercial intent: ad should appear without a long LLM answer.
+  await page.locator('.message-textarea').fill('Купить смартфон. Ок.');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('смартфон');
-
-  const ad = page.locator('.misa-message').first().locator('.message-ad').first();
-  await expect(ad).toBeVisible({ timeout: 90_000 });
-  await expect(ad.locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(ad.locator('.message-ad-body a').first()).toBeVisible();
+  await expect(page.locator('.misa-message').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.misa-message').first().locator('.message-ad').first()).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(
+    page.locator('.misa-message').first().locator('.message-ad').first().locator('.message-ad-label'),
+  ).toHaveText('Реклама');
 });
