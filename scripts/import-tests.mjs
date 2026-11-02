@@ -112,15 +112,10 @@ function validateImportedSteps(name, steps) {
   }
 }
 
-function advertisingCron(index) {
-  // One advertising vertical per hour, after other hourlies (0-24), 2 minutes apart
-  // so they never overlap with each other under TEST_WORKER_CONCURRENCY.
-  const slots = [51, 53, 55, 57, 59];
-  const minute = slots[index];
-  if (minute === undefined) {
-    throw new Error(`Advertising schedule index ${index} exceeds supported slots`);
-  }
-  return `${minute} * * * *`;
+function advertisingCron() {
+  // Run all advertising verticals together every 15 minutes. The worker
+  // concurrency limit controls how many browsers execute at once.
+  return '*/15 * * * *';
 }
 
 const login = await request('/auth/login', {
@@ -216,11 +211,9 @@ for (const importedTest of existing) {
 }
 
 let hourlyScheduleIndex = 0;
-let advertisingScheduleIndex = 0;
 for (const file of specs) {
   const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
   const isAdvertisingTest = name.startsWith('misa-advertising');
-  const advertisingIndex = isAdvertisingTest ? advertisingScheduleIndex++ : -1;
   let importedTest = testsByName.get(name);
   const code = await readFile(file, 'utf8');
 
@@ -279,7 +272,7 @@ for (const file of specs) {
   const schedulePayload = {
     name: scheduleName,
     cron: isAdvertisingTest
-      ? advertisingCron(advertisingIndex)
+      ? advertisingCron()
       : staggeredCron(hourlyScheduleIndex++),
     testId: importedTest.id,
     environmentId: environment.id,
