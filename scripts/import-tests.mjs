@@ -75,13 +75,13 @@ function prepareImportedSteps(name, steps) {
     return steps;
   }
 
-  // Cap only the first ad wait. Long chained timeouts kept Chromium (~3Gi) alive.
+  // The ad arrives only after the streamed answer and 10 Gradius requests.
   let adWaitPatched = false;
   return steps.map((step) => {
     const selector = step.selector ?? '';
     if (!adWaitPatched && selector.includes('.message-ad')) {
       adWaitPatched = true;
-      return { ...step, options: { ...(step.options ?? {}), timeout: 30_000 } };
+      return { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } };
     }
     return step;
   });

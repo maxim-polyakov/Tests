@@ -3,7 +3,7 @@
 import { expect, test } from '@playwright/test';
 
 test('Misa показывает рекламу для запроса об отеле', async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
 
   await page.goto(process.env.LOGIN_URL ?? '');
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
@@ -17,7 +17,7 @@ test('Misa показывает рекламу для запроса об оте
   await page.locator('.message-textarea').fill('Снять отель. Ок.');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('отель');
-  await expect(page.locator('.misa-message').first()).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('.misa-message').first().locator('.message-ad').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.misa-message').first()).toBeVisible({ timeout: 90_000 });
+  await expect(page.locator('.misa-message').first().locator('.message-ad').first()).toBeVisible({ timeout: 90_000 });
   await expect(page.locator('.misa-message').first().locator('.message-ad').first().locator('.message-ad-label')).toHaveText('Реклама');
 });
