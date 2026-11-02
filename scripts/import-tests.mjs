@@ -75,19 +75,30 @@ function prepareImportedSteps(name, steps) {
     return steps;
   }
 
-  // Wait for the response container only; WrightTest screenshots this step.
+  // Wait until Misa starts and finishes typing; WrightTest screenshots both
+  // the loading state and the finished response. `exact` is repurposed by the
+  // worker patch as the hidden-state flag for waitForSelector.
   let responseWaitPatched = false;
-  return steps.map((step) => {
+  return steps.flatMap((step) => {
     const selector = step.selector ?? '';
     if (!responseWaitPatched && selector.includes('.misa-message')) {
       responseWaitPatched = true;
-      return {
-        ...step,
-        action: 'waitForSelector',
-        options: { ...(step.options ?? {}), timeout: 90_000 },
-      };
+      return [
+        {
+          ...step,
+          action: 'waitForSelector',
+          selector: "page.locator('.typing-indicator')",
+          options: { timeout: 10_000 },
+        },
+        {
+          ...step,
+          action: 'waitForSelector',
+          selector: "page.locator('.typing-indicator')",
+          options: { exact: true, timeout: 90_000 },
+        },
+      ];
     }
-    return step;
+    return [step];
   });
 }
 

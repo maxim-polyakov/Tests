@@ -252,7 +252,7 @@ spec:
           args:
             - >-
               cd backend &&
-              node -e "const fs=require('fs');const p='dist/src/queue/worker.js';let s=fs.readFileSync(p,'utf8');s=s.replaceAll('await locator.waitFor({ timeout: 10000 });','await locator.waitFor({ timeout: step.options?.timeout ?? 10000 });');fs.writeFileSync(p,s)" &&
+              node -e "const fs=require('fs');const p='dist/src/queue/worker.js';let s=fs.readFileSync(p,'utf8');s=s.replaceAll('await locator.waitFor({ timeout: 10000 });','await locator.waitFor({ state: step.options?.exact ? \"hidden\" : \"visible\", timeout: step.options?.timeout ?? 10000 });');fs.writeFileSync(p,s)" &&
               npx prisma migrate deploy &&
               npx prisma db seed &&
               node dist/src/index.js
