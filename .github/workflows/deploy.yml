@@ -156,8 +156,8 @@ jobs:
                for attempt in \$(seq 1 90); do
                  complete=\$(kubectl -n wrighttest get job "\$job" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || true)
                  failed=\$(kubectl -n wrighttest get job "\$job" -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || true)
-                 if [ "\$complete" = "True" ]; then return 0; fi
-                 if [ "\$failed" = "True" ]; then
+                 if [ x\$complete = xTrue ]; then return 0; fi
+                 if [ x\$failed = xTrue ]; then
                    kubectl -n wrighttest describe job/"\$job" || true
                    kubectl -n wrighttest logs job/"\$job" --all-containers=true --tail=-1 || true
                    return 1
