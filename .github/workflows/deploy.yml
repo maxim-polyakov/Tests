@@ -151,29 +151,26 @@ jobs:
              kubectl -n wrighttest exec wrighttest-e2e-sync -- sh -c 'rm -rf /data/e2e && mkdir -p /data/e2e'
              kubectl -n wrighttest cp e2e/. wrighttest-e2e-sync:/data/e2e
              kubectl -n wrighttest delete pod wrighttest-e2e-sync --wait=true
-             if ! kubectl -n wrighttest wait --for=condition=complete job/test-importer --timeout=300s; then
-               kubectl -n wrighttest describe job/test-importer || true
-               kubectl -n wrighttest logs job/test-importer --all-containers=true --tail=-1 || true
-               exit 1
-             fi
-             if ! kubectl -n wrighttest wait --for=condition=complete job/misagallery-test-importer --timeout=300s; then
-               kubectl -n wrighttest describe job/misagallery-test-importer || true
-               kubectl -n wrighttest logs job/misagallery-test-importer --all-containers=true --tail=-1 || true
-               exit 1
-             fi
-             if ! kubectl -n wrighttest wait --for=condition=complete job/ecommerce-test-importer --timeout=300s; then
-               kubectl -n wrighttest describe job/ecommerce-test-importer || true
-               kubectl -n wrighttest logs job/ecommerce-test-importer --all-containers=true --tail=-1 || true
-               exit 1
-             fi
-             if ! kubectl -n wrighttest wait --for=condition=complete job/businesscard-test-importer --timeout=300s; then
-               kubectl -n wrighttest describe job/businesscard-test-importer || true
-               kubectl -n wrighttest logs job/businesscard-test-importer --all-containers=true --tail=-1 || true
-               exit 1
-             fi
-             if ! kubectl -n wrighttest wait --for=condition=complete job/kanban-test-importer --timeout=300s; then
-               kubectl -n wrighttest describe job/kanban-test-importer || true
-               kubectl -n wrighttest logs job/kanban-test-importer --all-containers=true --tail=-1 || true
-               exit 1
-             fi
+             wait_for_importer() {
+               job="\$1"
+               for attempt in \$(seq 1 90); do
+                 complete=\$(kubectl -n wrighttest get job "\$job" -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || true)
+                 failed=\$(kubectl -n wrighttest get job "\$job" -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || true)
+                 if [ "\$complete" = "True" ]; then return 0; fi
+                 if [ "\$failed" = "True" ]; then
+                   kubectl -n wrighttest describe job/"\$job" || true
+                   kubectl -n wrighttest logs job/"\$job" --all-containers=true --tail=-1 || true
+                   return 1
+                 fi
+                 sleep 2
+               done
+               kubectl -n wrighttest describe job/"\$job" || true
+               kubectl -n wrighttest logs job/"\$job" --all-containers=true --tail=-1 || true
+               return 1
+             }
+             wait_for_importer test-importer
+             wait_for_importer misagallery-test-importer
+             wait_for_importer ecommerce-test-importer
+             wait_for_importer businesscard-test-importer
+             wait_for_importer kanban-test-importer
              kubectl -n wrighttest get pods -o wide"

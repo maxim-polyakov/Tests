@@ -18,10 +18,6 @@ test('Misa показывает рекламу для запроса об оте
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('отель');
   await expect(page.locator('.misa-message').first()).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator('.misa-message').first().locator('.message-ad').first()).toBeVisible({
-    timeout: 30_000,
-  });
-  await expect(
-    page.locator('.misa-message').first().locator('.message-ad').first().locator('.message-ad-label'),
-  ).toHaveText('Реклама');
+  await expect(page.locator('.misa-message').first().locator('.message-ad').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('.misa-message').first().locator('.message-ad').first().locator('.message-ad-label')).toHaveText('Реклама');
 });
