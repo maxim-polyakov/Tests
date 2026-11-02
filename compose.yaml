@@ -28,6 +28,15 @@ services:
   backend:
     image: sacha1bu/wrighttest-backend:${WRIGHTTEST_VERSION:-0.2.0}
     restart: unless-stopped
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        cd backend &&
+        node -e "const fs=require('fs');const p='dist/src/queue/worker.js';let s=fs.readFileSync(p,'utf8');s=s.replaceAll('await locator.waitFor({ timeout: 10000 });','await locator.waitFor({ timeout: step.options?.timeout ?? 10000 });');fs.writeFileSync(p,s)" &&
+        npx prisma migrate deploy &&
+        npx prisma db seed &&
+        node dist/src/index.js
     ports:
       - "127.0.0.1:${BACKEND_HOST_PORT:-3000}:3000"
     extra_hosts:

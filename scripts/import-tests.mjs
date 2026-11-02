@@ -81,7 +81,11 @@ function prepareImportedSteps(name, steps) {
     const selector = step.selector ?? '';
     if (!responseWaitPatched && selector.includes('.misa-message')) {
       responseWaitPatched = true;
-      return { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } };
+      return {
+        ...step,
+        action: 'waitForSelector',
+        options: { ...(step.options ?? {}), timeout: 90_000 },
+      };
     }
     return step;
   });
