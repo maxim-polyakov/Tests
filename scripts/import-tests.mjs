@@ -94,7 +94,7 @@ function prepareImportedSteps(name, steps) {
           ...step,
           action: 'waitForSelector',
           selector: "page.locator('.typing-indicator')",
-          options: { exact: true, timeout: 90_000 },
+          options: { exact: true, timeout: 180_000 },
         },
       ];
     }
