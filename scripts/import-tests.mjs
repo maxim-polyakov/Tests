@@ -75,16 +75,26 @@ function prepareImportedSteps(name, steps) {
     return steps;
   }
 
-  // The ad arrives only after the streamed answer and 10 Gradius requests.
-  let adWaitPatched = false;
+  // Wait for the response container only; WrightTest screenshots this step.
+  let responseWaitPatched = false;
   return steps.map((step) => {
     const selector = step.selector ?? '';
-    if (!adWaitPatched && selector.includes('.message-ad')) {
-      adWaitPatched = true;
+    if (!responseWaitPatched && selector.includes('.misa-message')) {
+      responseWaitPatched = true;
       return { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } };
     }
     return step;
   });
+}
+
+function validateImportedSteps(name, steps) {
+  if (!name.startsWith('misa-advertising')) {
+    return;
+  }
+
+  if (!steps.some((step) => (step.selector ?? '').includes('.misa-message'))) {
+    throw new Error(`Advertising test ${name} was imported without the Misa response wait`);
+  }
 }
 
 function advertisingCron(index) {
@@ -233,6 +243,7 @@ for (const file of specs) {
     console.log(`Imported test: ${name}`);
   }
 
+  validateImportedSteps(name, importedTest.steps);
   const preparedSteps = prepareImportedSteps(name, importedTest.steps);
   if (preparedSteps !== importedTest.steps) {
     importedTest = await request(`/tests/${importedTest.id}`, {
