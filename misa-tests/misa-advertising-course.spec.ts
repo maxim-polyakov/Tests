@@ -13,12 +13,14 @@ test('Misa показывает рекламу для запроса об онл
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-  await page.locator('.message-textarea').fill('Помоги выбрать онлайн-курс по программированию для начинающего. Ответь одним словом.');
+  await page.locator('.message-textarea').fill(
+    'Помоги выбрать онлайн-курс по программированию для начинающего. Ответь одним словом.',
+  );
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('онлайн-курс');
-  await expect(page.locator('.misa-message').nth(0)).toBeVisible();
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first()).toBeVisible();
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-body')).toBeVisible();
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-body a').first()).toBeVisible();
+
+  const ad = page.locator('.misa-message').first().locator('.message-ad').first();
+  await expect(ad).toBeVisible({ timeout: 90_000 });
+  await expect(ad.locator('.message-ad-label')).toHaveText('Реклама');
+  await expect(ad.locator('.message-ad-body a').first()).toBeVisible();
 });

@@ -67,7 +67,7 @@ async function findSpecs(directory) {
     return entry.isDirectory() ? findSpecs(entryPath) : [entryPath];
   }));
 
-  return files.flat().filter((file) => file.endsWith('.spec.ts'));
+  return files.flat().filter((file) => file.endsWith('.spec.ts')).sort();
 }
 
 function prepareImportedSteps(name, steps) {
@@ -75,11 +75,28 @@ function prepareImportedSteps(name, steps) {
     return steps;
   }
 
-  return steps.map((step) => (
-    step.selector?.includes(".misa-message")
-      ? { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } }
-      : step
-  ));
+  // Only the first ad wait needs a long timeout. Extending every .misa-message
+  // assertion to 90s kept Chromium alive far longer on slow Gradius answers.
+  let adWaitPatched = false;
+  return steps.map((step) => {
+    const selector = step.selector ?? '';
+    if (!adWaitPatched && selector.includes('.message-ad')) {
+      adWaitPatched = true;
+      return { ...step, options: { ...(step.options ?? {}), timeout: 90_000 } };
+    }
+    return step;
+  });
+}
+
+function advertisingCron(index) {
+  // One advertising vertical per 15-minute wall slot instead of all five on */15.
+  // Keeps a check every :00/:15/:30/:45, each scenario once per hour (+ :50 for the 5th).
+  const slots = [0, 15, 30, 45, 50];
+  const minute = slots[index];
+  if (minute === undefined) {
+    throw new Error(`Advertising schedule index ${index} exceeds supported slots`);
+  }
+  return `${minute} * * * *`;
 }
 
 function validateImportedSteps(name, steps) {
@@ -193,10 +210,7 @@ let advertisingScheduleIndex = 0;
 for (const file of specs) {
   const name = path.relative(testsDirectory, file).replaceAll('\\', '/');
   const isAdvertisingTest = name.startsWith('misa-advertising');
-  const advertisingMinute = advertisingScheduleIndex * 3;
-  if (isAdvertisingTest) {
-    advertisingScheduleIndex += 1;
-  }
+  const advertisingIndex = isAdvertisingTest ? advertisingScheduleIndex++ : -1;
   let importedTest = testsByName.get(name);
   const code = await readFile(file, 'utf8');
 
@@ -255,7 +269,7 @@ for (const file of specs) {
   const schedulePayload = {
     name: scheduleName,
     cron: isAdvertisingTest
-      ? `${advertisingMinute}-59/15 * * * *`
+      ? advertisingCron(advertisingIndex)
       : staggeredCron(hourlyScheduleIndex++),
     testId: importedTest.id,
     environmentId: environment.id,

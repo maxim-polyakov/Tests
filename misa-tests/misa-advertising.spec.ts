@@ -8,19 +8,19 @@ test('Misa показывает рекламу для запроса о смар
   await page.locator('input').nth(0).fill(process.env.TEST_EMAIL ?? '');
   await page.locator('input').nth(1).fill(process.env.TEST_PASSWORD ?? '');
   await page.locator('button.btn-outline-success').click();
-
   await expect(page).toHaveURL(process.env.CHAT_URL ?? '');
   await expect(page.locator('.chat-container')).toBeVisible();
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-
-  await page.locator('.message-textarea').fill('Посоветуй смартфон с хорошей камерой, который можно купить в этом году. Ответь одним словом.');
+  await page.locator('.message-textarea').fill(
+    'Посоветуй смартфон с хорошей камерой, который можно купить в этом году. Ответь одним словом.',
+  );
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.user-message').last()).toContainText('смартфон');
-  await expect(page.locator('.misa-message').nth(0)).toBeVisible();
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first()).toBeVisible();
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-label')).toHaveText('Реклама');
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-body')).toBeVisible();
-  await expect(page.locator('.misa-message').nth(0).locator('.message-ad').first().locator('.message-ad-body a').first()).toBeVisible();
+
+  const ad = page.locator('.misa-message').first().locator('.message-ad').first();
+  await expect(ad).toBeVisible({ timeout: 90_000 });
+  await expect(ad.locator('.message-ad-label')).toHaveText('Реклама');
+  await expect(ad.locator('.message-ad-body a').first()).toBeVisible();
 });
