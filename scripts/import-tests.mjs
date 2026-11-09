@@ -78,9 +78,25 @@ function prepareImportedSteps(name, steps) {
   // Wait until Misa starts and finishes typing; WrightTest screenshots both
   // the loading state and the finished response. `exact` is repurposed by the
   // worker patch as the hidden-state flag for waitForSelector.
+  // AD_PROMPT_* phrases are generated fresh each run by the WrightTest backend patch.
+  const promptBySpec = {
+    'misa-advertising.spec.ts': '{{AD_PROMPT_SMARTPHONE}}',
+    'misa-advertising-car.spec.ts': '{{AD_PROMPT_CAR}}',
+    'misa-advertising-course.spec.ts': '{{AD_PROMPT_COURSE}}',
+    'misa-advertising-food-delivery.spec.ts': '{{AD_PROMPT_FOOD}}',
+    'misa-advertising-hotel.spec.ts': '{{AD_PROMPT_HOTEL}}',
+  };
+  const promptValue = promptBySpec[name];
   let responseWaitPatched = false;
   return steps.flatMap((step) => {
     const selector = step.selector ?? '';
+    if (
+      promptValue
+      && step.action === 'fill'
+      && selector.includes('.message-textarea')
+    ) {
+      step = { ...step, value: promptValue };
+    }
     if (!responseWaitPatched && selector.includes('.misa-message')) {
       responseWaitPatched = true;
       return [

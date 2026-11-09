@@ -15,7 +15,8 @@ test('Misa показывает рекламу для запроса о смар
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
   // WrightTest captures a screenshot after the response becomes visible.
-  await page.locator('.message-textarea').fill('Купить смартфон. Ок.');
+  // AD_PROMPT_SMARTPHONE is a fresh Russian phrase each run (WrightTest backend patch).
+  await page.locator('.message-textarea').fill('{{AD_PROMPT_SMARTPHONE}}');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.misa-message').first()).toBeVisible();
 });

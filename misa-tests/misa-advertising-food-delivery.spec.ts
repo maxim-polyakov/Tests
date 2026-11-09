@@ -14,7 +14,7 @@ test('Misa показывает рекламу для запроса о дост
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-  await page.locator('.message-textarea').fill('Заказать доставку еды. Ок.');
+  await page.locator('.message-textarea').fill('{{AD_PROMPT_FOOD}}');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.misa-message').first()).toBeVisible();
 });

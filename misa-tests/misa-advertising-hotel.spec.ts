@@ -14,7 +14,7 @@ test('Misa показывает рекламу для запроса об оте
 
   await page.locator('.new-chat-button').click();
   await expect(page.locator('.message-textarea')).toBeVisible();
-  await page.locator('.message-textarea').fill('Снять отель. Ок.');
+  await page.locator('.message-textarea').fill('{{AD_PROMPT_HOTEL}}');
   await page.getByTitle('Отправить сообщение').click();
   await expect(page.locator('.misa-message').first()).toBeVisible();
 });
