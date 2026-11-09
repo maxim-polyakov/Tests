@@ -49,14 +49,29 @@ async function request(urlPath, options = {}) {
     delete headers['content-type'];
   }
 
-  const response = await fetch(`${apiUrl}${urlPath}`, { ...options, headers });
-  const body = response.status === 204 ? null : await response.json();
+  let lastError;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      const response = await fetch(`${apiUrl}${urlPath}`, { ...options, headers });
+      const body = response.status === 204 ? null : await response.json();
 
-  if (!response.ok) {
-    throw new Error(`${options.method ?? 'GET'} ${urlPath}: ${response.status} ${JSON.stringify(body)}`);
+      if (!response.ok) {
+        throw new Error(`${options.method ?? 'GET'} ${urlPath}: ${response.status} ${JSON.stringify(body)}`);
+      }
+
+      return body;
+    } catch (error) {
+      lastError = error;
+      const retryable = error instanceof TypeError
+        || /fetch failed|other side closed|ECONNRESET|ECONNREFUSED/i.test(String(error?.cause ?? error));
+      if (!retryable || attempt === 5) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    }
   }
 
-  return body;
+  throw lastError;
 }
 
 async function findSpecs(directory) {

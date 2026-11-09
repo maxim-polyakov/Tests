@@ -117,14 +117,11 @@ jobs:
              kubectl -n wrighttest create configmap wrighttest-kanban-tests \
                --from-file=kanban-tests \
                --dry-run=client -o yaml | kubectl apply -f -
-             kubectl -n wrighttest delete job test-importer --ignore-not-found
-             kubectl -n wrighttest delete job misagallery-test-importer --ignore-not-found
-             kubectl -n wrighttest delete job ecommerce-test-importer --ignore-not-found
-             kubectl -n wrighttest delete job businesscard-test-importer --ignore-not-found
-             kubectl -n wrighttest delete job kanban-test-importer --ignore-not-found
              kubectl -n wrighttest delete job canban-test-importer --ignore-not-found
              kubectl -n wrighttest delete cronjob canban-e2e --ignore-not-found
              kubectl -n wrighttest delete configmap wrighttest-canban-tests --ignore-not-found
+             # Prompt pool must exist before backend mounts it.
+             kubectl apply -f k8s/ad-prompt-pool-configmap.yaml
              kubectl apply -f k8s/resources.yaml
              kubectl apply -f k8s/e2e-cronjob.yaml
              kubectl apply -f k8s/gallery-e2e-cronjob.yaml
@@ -151,6 +148,11 @@ jobs:
              kubectl -n wrighttest exec wrighttest-e2e-sync -- sh -c 'rm -rf /data/e2e && mkdir -p /data/e2e'
              kubectl -n wrighttest cp e2e/. wrighttest-e2e-sync:/data/e2e
              kubectl -n wrighttest delete pod wrighttest-e2e-sync --wait=true
+             # Importers run only after backend/frontend are stable (avoids UND_ERR_SOCKET).
+             for job in test-importer misagallery-test-importer ecommerce-test-importer businesscard-test-importer kanban-test-importer; do
+               kubectl -n wrighttest delete job "\$job" --ignore-not-found --wait=true
+             done
+             kubectl apply -f k8s/importer-jobs.yaml
              wait_for_importer() {
                job="\$1"
                for attempt in \$(seq 1 90); do
