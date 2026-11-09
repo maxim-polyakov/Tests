@@ -112,7 +112,8 @@ spec:
             name: wrighttest-importer-script
         - name: misa-tests
           configMap:
-            name: wrighttest-misa-tests---
+            name: wrighttest-misa-tests
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -218,7 +219,8 @@ spec:
             name: wrighttest-importer-script
         - name: gallery-tests
           configMap:
-            name: wrighttest-gallery-tests---
+            name: wrighttest-gallery-tests
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -328,7 +330,8 @@ spec:
             name: wrighttest-importer-script
         - name: ecommerce-tests
           configMap:
-            name: wrighttest-ecommerce-tests---
+            name: wrighttest-ecommerce-tests
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -420,7 +423,8 @@ spec:
             name: wrighttest-importer-script
         - name: businesscard-tests
           configMap:
-            name: wrighttest-businesscard-tests---
+            name: wrighttest-businesscard-tests
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
