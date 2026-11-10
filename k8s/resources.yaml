@@ -291,11 +291,29 @@ spec:
             - name: TEST_WORKER_CONCURRENCY
               value: "1"
           # LimitedSwap share ≈ request/MemTotal * SwapTotal (zram+disk).
-          # 4Gi request on ~8Gi RAM ≈ 15Gi swap; no memory limit so chrome can use it.
+          # 4Gi request on ~8Gi RAM ≈ 15Gi swap. No memory.max kill limit.
           resources:
             requests:
               cpu: 50m
               memory: 4Gi
+          # Push cold pages into swap before host RAM is exhausted (does not kill chrome).
+          securityContext:
+            privileged: true
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    CG=$(awk -F: 'NR==1 { print $NF }' /proc/self/cgroup)
+                    HIGH=$((3 * 1024 * 1024 * 1024))
+                    for p in "/host-cgroup${CG}/memory.high" "/host-cgroup${CG}/../memory.high"; do
+                      if [ -e "$p" ]; then
+                        echo "$HIGH" > "$p" || true
+                        break
+                      fi
+                    done
           ports:
             - name: backend
               containerPort: 3000
@@ -333,6 +351,8 @@ spec:
               mountPath: /ad-prompt-pool.json
               subPath: ad-prompt-pool.json
               readOnly: true
+            - name: host-cgroup
+              mountPath: /host-cgroup
       volumes:
         - name: wrighttest-data
           persistentVolumeClaim:
@@ -347,6 +367,10 @@ spec:
         - name: ad-prompt-pool
           configMap:
             name: wrighttest-ad-prompt-pool
+        - name: host-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+            type: Directory
 ---
 
 apiVersion: v1
