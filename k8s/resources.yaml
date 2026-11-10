@@ -291,14 +291,11 @@ spec:
             - name: TEST_WORKER_CONCURRENCY
               value: "1"
           # LimitedSwap share ≈ request/MemTotal * SwapTotal (zram+disk).
-          # 4Gi request on ~8Gi RAM node ≈ 15Gi swap so chrome-headless can page out.
+          # 4Gi request on ~8Gi RAM ≈ 15Gi swap; no memory limit so chrome can use it.
           resources:
             requests:
               cpu: 50m
               memory: 4Gi
-            limits:
-              cpu: "2"
-              memory: 8Gi
           ports:
             - name: backend
               containerPort: 3000
