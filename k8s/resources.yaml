@@ -288,12 +288,29 @@ spec:
               value: --require=/app/backend/wrighttest-popup-screenshot.cjs
             - name: TEST_WORKER_CONCURRENCY
               value: "1"
-          # LimitedSwap share ≈ request/MemTotal * SwapTotal (zram+disk).
-          # 4Gi request on ~8Gi RAM ≈ 15Gi swap. No memory.high throttle, no memory.max kill.
+          # LimitedSwap: 4Gi request ~15Gi swap so memory.high=3Gi can reclaim into swap
+          # without stalling probes (256Mi request left only ~1Gi swap and backend went NotReady).
           resources:
             requests:
               cpu: 50m
               memory: 4Gi
+          securityContext:
+            privileged: true
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    CG=$(awk -F: 'NR==1 { print $NF }' /proc/self/cgroup)
+                    HIGH=$((3 * 1024 * 1024 * 1024))
+                    for p in "/host-cgroup${CG}/memory.high" "/host-cgroup${CG}/../memory.high"; do
+                      if [ -e "$p" ]; then
+                        echo "$HIGH" > "$p" || true
+                        break
+                      fi
+                    done
           ports:
             - name: backend
               containerPort: 3000
@@ -308,6 +325,8 @@ spec:
               path: /health/db
               port: backend
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 12
           volumeMounts:
             - name: wrighttest-data
               mountPath: /app/backend/screenshots
@@ -331,6 +350,8 @@ spec:
               mountPath: /ad-prompt-pool.json
               subPath: ad-prompt-pool.json
               readOnly: true
+            - name: host-cgroup
+              mountPath: /host-cgroup
       volumes:
         - name: wrighttest-data
           persistentVolumeClaim:
@@ -345,6 +366,10 @@ spec:
         - name: ad-prompt-pool
           configMap:
             name: wrighttest-ad-prompt-pool
+        - name: host-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+            type: Directory
 ---
 
 apiVersion: v1
