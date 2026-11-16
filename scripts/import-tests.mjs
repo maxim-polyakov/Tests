@@ -188,6 +188,7 @@ const environmentVariables = {
   SHOP_URL: `${targetBaseUrl}${shopPath}?lang=ru`,
   CHAT_URL: `${targetBaseUrl}/chat?lang=ru`,
   CHAT_EN_URL: `${targetBaseUrl}/chat?lang=en`,
+  CHAT_DE_URL: `${targetBaseUrl}/chat?lang=de`,
   CHAT_AR_URL: `${targetBaseUrl}/chat?lang=ar`,
   GALLERY_URL: `${targetBaseUrl}/gallery?lang=ru`,
   ADMIN_URL: `${targetBaseUrl}/admin?lang=ru`,
